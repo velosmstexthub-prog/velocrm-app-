@@ -329,6 +329,20 @@ document.getElementById('customerForm').addEventListener('submit',function(e) {
 
 renderCustomers();
 </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+  const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
+
+  const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
+
+  window.veloSupabase = window.supabase.createClient(
+    VELO_SUPABASE_URL,
+    VELO_SUPABASE_KEY
+  );
+
+  console.log("VeloCRM Supabase connection initialized.");
+</script>
 
 </body>
         </html>
