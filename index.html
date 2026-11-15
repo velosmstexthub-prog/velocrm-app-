@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,344 +5,367 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="VeloCRM by VeloAxis - Manage customers and grow your business.">
 <title>VeloCRM | VeloAxis</title>
-
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: #090909;
-  color: #f5f5f5;
-  font-family: Arial, sans-serif;
-  line-height: 1.5;
-}
-
-header {
-  padding: 20px;
-  border-bottom: 1px solid #292929;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo { font-size: 23px; font-weight: bold; letter-spacing: 2px; }
-.logo span { color: #aaa; }
-.brand { color: #999; font-size: 11px; }
-
-main { padding: 25px 20px 40px; max-width: 1100px; margin: auto; }
-
-.welcome { margin-bottom: 25px; }
-.welcome small { color: #aaa; letter-spacing: 2px; }
-h1 { font-size: 28px; margin: 8px 0; }
-.welcome p { color: #999; font-size: 14px; }
-
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin: 25px 0;
-}
-
-.stat, .panel {
-  background: #141414;
-  border: 1px solid #303030;
-  padding: 18px;
-  border-radius: 8px;
-}
-
-.stat small { color: #999; font-size: 12px; }
-.stat h2 { font-size: 27px; margin-top: 8px; }
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 28px 0 15px;
-}
-
-.section-heading h2 { font-size: 19px; }
-
-button {
-  background: #c0c0c0;
-  color: #080808;
-  border: none;
-  padding: 11px 15px;
-  border-radius: 4px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.customer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 0;
-  border-bottom: 1px solid #292929;
-}
-
-.customer:last-child { border-bottom: none; }
-.customer p { color: #999; font-size: 12px; }
-.tag { color: #c0c0c0; font-size: 11px; }
-
-.reminder {
-  padding: 13px 0;
-  border-bottom: 1px solid #292929;
-  font-size: 14px;
-}
-
-.reminder:last-child { border-bottom: none; }
-.reminder small { display: block; color: #999; }
-
-nav {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 15px 20px;
-  border-bottom: 1px solid #292929;
-}
-
-nav button {
-  background: #222;
-  color: #ccc;
-  white-space: nowrap;
-}
-
-nav button.active { background: #c0c0c0; color: #080808; }
-
-.page { display: none; }
-.page.active { display: block; }
-
-input {
-  width: 100%;
-  background: #202020;
-  color: white;
-  border: 1px solid #444;
-  padding: 12px;
-  margin: 8px 0 15px;
-  border-radius: 4px;
-}
-
-label { color: #bbb; font-size: 13px; }
-
-.form-box { max-width: 450px; margin-top: 20px; }
-
-footer {
-  padding: 25px;
-  text-align: center;
-  border-top: 1px solid #292929;
-  color: #777;
-  font-size: 12px;
-}
-
-@media(min-width: 700px) {
-  .stats { grid-template-columns: repeat(4, 1fr); }
-  main { padding-top: 40px; }
-}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#090909;color:#f5f5f5;font-family:Arial,sans-serif;line-height:1.5}
+header{padding:18px 20px;border-bottom:1px solid #292929;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.logo{font-size:23px;font-weight:bold;letter-spacing:2px}.logo span{color:#aaa}
+.brand{color:#999;font-size:11px}
+main{padding:25px 20px 40px;max-width:1100px;margin:auto}
+.welcome{margin-bottom:25px}.welcome small{color:#aaa;letter-spacing:2px}
+h1{font-size:28px;margin:8px 0}.welcome p{color:#999;font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:25px 0}
+.stat,.panel{background:#141414;border:1px solid #303030;padding:18px;border-radius:8px}
+.stat small{color:#999;font-size:12px}.stat h2{font-size:27px;margin-top:8px}
+.section-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:28px 0 15px}
+.section-heading h2{font-size:19px}
+button{background:#c0c0c0;color:#080808;border:none;padding:11px 15px;border-radius:4px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+.secondary{background:#333;color:#fff}
+.customer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 0;border-bottom:1px solid #292929}
+.customer:last-child{border-bottom:none}.customer p{color:#999;font-size:12px;overflow-wrap:anywhere}
+.tag{color:#c0c0c0;font-size:11px}
+nav{display:flex;gap:10px;overflow-x:auto;padding:15px 20px;border-bottom:1px solid #292929}
+nav button{background:#222;color:#ccc;white-space:nowrap}
+nav button.active{background:#c0c0c0;color:#080808}
+.page{display:none}.page.active{display:block}
+input{width:100%;background:#202020;color:white;border:1px solid #444;padding:12px;margin:8px 0 15px;border-radius:4px}
+label{color:#bbb;font-size:13px}
+.form-box{max-width:450px;margin-top:20px}
+footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;font-size:12px}
+.auth-wrap{max-width:470px;margin:35px auto;padding:22px;background:#141414;border:1px solid #303030;border-radius:9px}
+.auth-wrap h1{font-size:25px}.auth-wrap p{color:#aaa;font-size:14px;margin:8px 0 18px}
+.auth-switch{display:flex;gap:8px;margin:18px 0}
+.auth-switch button{flex:1;background:#292929;color:#ddd}
+.auth-switch button.active{background:#c0c0c0;color:#080808}
+.notice{font-size:13px;padding:12px;border:1px solid #444;border-radius:5px;margin:12px 0;color:#ddd;overflow-wrap:anywhere}
+.error{border-color:#8a4444;color:#ffcaca}
+.success{border-color:#547b5c;color:#c8f1ce}
+#appShell{display:none}
+.empty{color:#999;font-size:14px;padding:10px 0}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}main{padding-top:40px}}
 </style>
 </head>
-
 <body>
-
 <header>
   <div>
     <div class="logo">VELO<span>CRM</span></div>
     <div class="brand">BY VELOAXIS</div>
   </div>
-  <div class="tag">DEMO VERSION</div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="tag">SECURE WORKSPACE</span>
+    <button id="signOutBtn" class="secondary" style="display:none;padding:8px 10px">Sign out</button>
+  </div>
 </header>
 
+<section id="authScreen" class="auth-wrap">
+  <div class="logo">VELO<span>CRM</span></div>
+  <h1 id="authTitle">Welcome back</h1>
+  <p id="authDescription">Sign in to manage your business customers.</p>
+  <div class="auth-switch">
+    <button type="button" id="showLogin" class="active">Log in</button>
+    <button type="button" id="showSignup">Create account</button>
+  </div>
+  <form id="authForm">
+    <div id="businessNameField" style="display:none">
+      <label for="businessName">Business name</label>
+      <input id="businessName" type="text" autocomplete="organization" placeholder="e.g. Kachi Ventures">
+    </div>
+    <label for="authEmail">Email address</label>
+    <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+    <label for="authPassword">Password</label>
+    <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters">
+    <button id="authSubmit" type="submit" style="width:100%">Log in</button>
+  </form>
+  <div id="authMessage" class="notice" style="display:none" role="status"></div>
+  <p style="font-size:12px;margin-top:16px">Your business information is private to your signed-in account, subject to the database access policies.</p>
+</section>
+
+<div id="appShell">
 <nav>
   <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
   <button onclick="showPage('customers',this)">Customers</button>
+  <button onclick="showPage('addCustomer',null)">Add Customer</button>
   <button onclick="showPage('followups',this)">Follow-ups</button>
   <button onclick="showPage('about',this)">About</button>
 </nav>
-
 <main>
-
 <section id="dashboard" class="page active">
   <div class="welcome">
     <small>BUSINESS OVERVIEW</small>
     <h1>Welcome to VeloCRM.</h1>
     <p>Organise your customers. Build stronger relationships. Grow smarter.</p>
   </div>
-
   <div class="stats">
-    <div class="stat">
-      <small>Total Customers</small>
-      <h2 id="customerCount">4</h2>
-    </div>
-    <div class="stat">
-      <small>Follow-ups</small>
-      <h2>3</h2>
-    </div>
-    <div class="stat">
-      <small>Interactions</small>
-      <h2>12</h2>
-    </div>
-    <div class="stat">
-      <small>Business Growth</small>
-      <h2>—</h2>
-    </div>
+    <div class="stat"><small>Total Customers</small><h2 id="customerCount">0</h2></div>
+    <div class="stat"><small>Follow-ups</small><h2>—</h2></div>
+    <div class="stat"><small>Interactions</small><h2>—</h2></div>
+    <div class="stat"><small>Business Growth</small><h2>—</h2></div>
   </div>
-
-  <div class="section-heading">
-    <h2>Recent Customers</h2>
-    <button onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button>
-  </div>
-
-  <div class="panel" id="recentCustomers"></div>
-
-  <div class="section-heading">
-    <h2>Upcoming Follow-ups</h2>
-  </div>
-
-  <div class="panel">
-    <div class="reminder">Contact Daniel <small>Demo reminder · Tomorrow</small></div>
-    <div class="reminder">Follow up with Grace <small>Demo reminder · Wednesday</small></div>
-    <div class="reminder">Check in with Michael <small>Demo reminder · Friday</small></div>
-  </div>
+  <div class="section-heading"><h2>Recent Customers</h2><button onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button></div>
+  <div class="panel" id="recentCustomers"><p class="empty">Your customer records will appear here.</p></div>
+  <div class="section-heading"><h2>Upcoming Follow-ups</h2></div>
+  <div class="panel"><p class="empty">Follow-up scheduling will be connected in a later development step.</p></div>
 </section>
 
 <section id="customers" class="page">
-  <div class="welcome">
-    <small>CUSTOMER MANAGEMENT</small>
-    <h1>Your Customers</h1>
-    <p>Keep your customer information organised in one place.</p>
-  </div>
-
-  <div class="section-heading">
-    <h2>Customer Records</h2>
-    <button onclick="showPage('addCustomer',null)">+ Add Customer</button>
-  </div>
-
-  <div class="panel" id="customerList"></div>
+  <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Your Customers</h1><p>Keep your customer information organised in one place.</p></div>
+  <div class="section-heading"><h2>Customer Records</h2><button onclick="showPage('addCustomer',null)">+ Add Customer</button></div>
+  <div class="panel" id="customerList"><p class="empty">Loading customer records...</p></div>
 </section>
 
 <section id="addCustomer" class="page">
-  <div class="welcome">
-    <small>CUSTOMER MANAGEMENT</small>
-    <h1>Add a Customer</h1>
-    <p>Enter sample information to test the prototype.</p>
-  </div>
-
+  <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Add a Customer</h1><p>Save a customer record to your business database.</p></div>
   <div class="form-box">
     <form id="customerForm">
-      <label>Customer Name</label>
-      <input id="name" required placeholder="Enter customer name">
-
-      <label>Phone Number</label>
-      <input id="phone" type="tel" placeholder="Enter phone number">
-
-      <label>Business Email</label>
-      <input id="email" type="email" placeholder="Enter email address">
-
-      <button type="submit">Save Customer</button>
-      <button type="button" onclick="showPage('customers',null)" style="background:#333;color:white;margin-left:5px;">Cancel</button>
+      <label for="name">Customer name</label><input id="name" required placeholder="Enter customer name">
+      <label for="phone">Phone number</label><input id="phone" type="tel" placeholder="Enter phone number">
+      <label for="email">Customer email</label><input id="email" type="email" placeholder="Enter email address">
+      <button id="saveCustomerBtn" type="submit">Save Customer</button>
+      <button type="button" class="secondary" onclick="showPage('customers',document.querySelectorAll('nav button')[1])" style="margin-left:5px">Cancel</button>
     </form>
+    <div id="customerMessage" class="notice" style="display:none" role="status"></div>
   </div>
 </section>
 
 <section id="followups" class="page">
-  <div class="welcome">
-    <small>CUSTOMER RELATIONSHIPS</small>
-    <h1>Follow-ups</h1>
-    <p>Stay connected with the customers who matter to your business.</p>
-  </div>
-
-  <div class="panel">
-    <div class="reminder">Contact Daniel <small>Tomorrow · Demo reminder</small></div>
-    <div class="reminder">Follow up with Grace <small>Wednesday · Demo reminder</small></div>
-    <div class="reminder">Check in with Michael <small>Friday · Demo reminder</small></div>
-  </div>
+  <div class="welcome"><small>CUSTOMER RELATIONSHIPS</small><h1>Follow-ups</h1><p>Stay connected with the customers who matter to your business.</p></div>
+  <div class="panel"><p class="empty">Follow-up reminders are planned for a later development step. No demo reminders are being shown as real records.</p></div>
 </section>
 
 <section id="about" class="page">
-  <div class="welcome">
-    <small>POWERED BY VELOAXIS</small>
-    <h1>About VeloCRM</h1>
-    <p>VeloCRM is being developed to help businesses manage customers, track interactions and organise follow-ups.</p>
-  </div>
-  <div class="panel">
-    <h2>Our mission</h2>
-    <p style="color:#aaa;margin-top:10px;">Make customer management simpler, smarter and more accessible for businesses.</p>
-    <p class="tag" style="margin-top:20px;">FIRST PRODUCT IN THE VELOAXIS ECOSYSTEM</p>
-  </div>
+  <div class="welcome"><small>POWERED BY VELOAXIS</small><h1>About VeloCRM</h1><p>VeloCRM is being developed to help businesses manage customers, track interactions and organise follow-ups.</p></div>
+  <div class="panel"><h2>Our mission</h2><p style="color:#aaa;margin-top:10px">Make customer management simpler, smarter and more accessible for businesses.</p><p class="tag" style="margin-top:20px">FIRST PRODUCT IN THE VELOAXIS ECOSYSTEM</p></div>
 </section>
-
 </main>
+</div>
 
 <footer>VELOCRM © 2026 | A VELOAXIS PRODUCT</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-let customers = [
-  {name:"Daniel James",phone:"08000000001",email:"daniel@example.com"},
-  {name:"Grace Williams",phone:"08000000002",email:"grace@example.com"},
-  {name:"Michael Brown",phone:"08000000003",email:"michael@example.com"},
-  {name:"Sarah Johnson",phone:"08000000004",email:"sarah@example.com"}
-];
+const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
+const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
+const veloSupabase = window.supabase.createClient(VELO_SUPABASE_URL, VELO_SUPABASE_KEY);
 
-function showPage(id,button) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  if(button) button.classList.add('active');
+let authMode = "login";
+let currentUser = null;
+let currentBusiness = null;
+let customers = [];
+
+const authScreen = document.getElementById("authScreen");
+const appShell = document.getElementById("appShell");
+const authMessage = document.getElementById("authMessage");
+
+function showMessage(element, message, type) {
+  element.textContent = message;
+  element.className = "notice " + (type || "");
+  element.style.display = "block";
+}
+function clearMessage(element) {
+  element.textContent = "";
+  element.style.display = "none";
+}
+function setAuthMode(mode) {
+  authMode = mode;
+  const signup = mode === "signup";
+  document.getElementById("showLogin").classList.toggle("active", !signup);
+  document.getElementById("showSignup").classList.toggle("active", signup);
+  document.getElementById("businessNameField").style.display = signup ? "block" : "none";
+  document.getElementById("businessName").required = signup;
+  document.getElementById("authTitle").textContent = signup ? "Create your VeloCRM account" : "Welcome back";
+  document.getElementById("authDescription").textContent = signup ? "Set up your account to start managing customers." : "Sign in to manage your business customers.";
+  document.getElementById("authSubmit").textContent = signup ? "Create account" : "Log in";
+  document.getElementById("authPassword").autocomplete = signup ? "new-password" : "current-password";
+  clearMessage(authMessage);
+}
+document.getElementById("showLogin").addEventListener("click", () => setAuthMode("login"));
+document.getElementById("showSignup").addEventListener("click", () => setAuthMode("signup"));
+
+document.getElementById("authForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
+  clearMessage(authMessage);
+  const button = document.getElementById("authSubmit");
+  const email = document.getElementById("authEmail").value.trim();
+  const password = document.getElementById("authPassword").value;
+  button.disabled = true;
+  button.textContent = "Please wait...";
+  try {
+    if (authMode === "signup") {
+      const businessName = document.getElementById("businessName").value.trim();
+      if (!businessName) throw new Error("Please enter your business name.");
+      const { data, error } = await veloSupabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin + window.location.pathname,
+          data: { business_name: businessName }
+        }
+      });
+      if (error) throw error;
+      if (data.session) {
+        showMessage(authMessage, "Your account has been created. Opening your workspace...", "success");
+        await openWorkspace(data.user);
+      } else {
+        showMessage(authMessage, "Account created. Please check your email and confirm your address. Then return here and log in.", "success");
+      }
+    } else {
+      const { data, error } = await veloSupabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await openWorkspace(data.user);
+    }
+  } catch (error) {
+    showMessage(authMessage, error.message || "Something went wrong. Please try again.", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = authMode === "signup" ? "Create account" : "Log in";
+  }
+});
+
+async function openWorkspace(user) {
+  currentUser = user;
+  clearMessage(authMessage);
+  authScreen.style.display = "none";
+  appShell.style.display = "block";
+  document.getElementById("signOutBtn").style.display = "inline-block";
+
+  try {
+    const { data: businesses, error: readError } = await veloSupabase
+      .from("businesses")
+      .select("id,name,owner_id")
+      .eq("owner_id", user.id)
+      .limit(1);
+    if (readError) throw readError;
+
+    if (businesses && businesses.length) {
+      currentBusiness = businesses[0];
+    } else {
+      const businessName = user.user_metadata?.business_name || "My Business";
+      const { data: createdBusiness, error: createError } = await veloSupabase
+        .from("businesses")
+        .insert({ name: businessName, owner_id: user.id })
+        .select("id,name,owner_id")
+        .single();
+      if (createError) throw createError;
+      currentBusiness = createdBusiness;
+    }
+    await loadCustomers();
+  } catch (error) {
+    document.getElementById("customerList").innerHTML = "";
+    showPage("customers", document.querySelectorAll("nav button")[1]);
+    const message = document.createElement("p");
+    message.className = "notice error";
+    message.textContent = "We signed you in, but could not load your business data: " + (error.message || "Database access error") + ". Please tell your VeloAxis setup assistant this exact message.";
+    document.getElementById("customerList").appendChild(message);
+  }
+}
+
+async function loadCustomers() {
+  if (!currentBusiness) return;
+  const { data, error } = await veloSupabase
+    .from("customers")
+    .select("id,business_id,name,phone,email,created_at")
+    .eq("business_id", currentBusiness.id)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  customers = data || [];
   renderCustomers();
 }
 
-function renderCustomers() {
-  const html = customers.map(c => `
-    <div class="customer">
-      <div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div>
-      <span class="tag">Customer</span>
-    </div>
-  `).join('');
-
-  document.getElementById('customerList').innerHTML = html;
-  document.getElementById('recentCustomers').innerHTML =
-    customers.slice(0,3).map(c => `
-      <div class="customer">
-        <div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div>
-        <span class="tag">Customer</span>
-      </div>
-    `).join('');
-
-  document.getElementById('customerCount').textContent = customers.length;
-}
-
 function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[char]);
 }
+function renderCustomers() {
+  const customerHTML = customers.length ? customers.map(c => `
+    <div class="customer">
+      <div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")} · ${escapeHTML(c.email || "No email added")}</p></div>
+      <span class="tag">Customer</span>
+    </div>`).join("") : '<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
+  document.getElementById("customerList").innerHTML = customerHTML;
+  document.getElementById("recentCustomers").innerHTML = customers.length
+    ? customers.slice(0,3).map(c => `<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div><span class="tag">Customer</span></div>`).join("")
+    : '<p class="empty">Your customer records will appear here.</p>';
+  document.getElementById("customerCount").textContent = customers.length;
+}
 
-document.getElementById('customerForm').addEventListener('submit',function(e) {
-  e.preventDefault();
-  customers.push({
-    name:document.getElementById('name').value,
-    phone:document.getElementById('phone').value,
-    email:document.getElementById('email').value
-  });
-  this.reset();
-  showPage('customers',document.querySelectorAll('nav button')[1]);
+document.getElementById("customerForm").addEventListener("submit", async function(event) {
+  event.preventDefault();
+  const message = document.getElementById("customerMessage");
+  const button = document.getElementById("saveCustomerBtn");
+  clearMessage(message);
+  if (!currentBusiness) {
+    showMessage(message, "Your business workspace is not ready. Please sign out and log in again.", "error");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "Saving...";
+  try {
+    const newCustomer = {
+      business_id: currentBusiness.id,
+      name: document.getElementById("name").value.trim(),
+      phone: document.getElementById("phone").value.trim() || null,
+      email: document.getElementById("email").value.trim() || null
+    };
+    const { error } = await veloSupabase.from("customers").insert(newCustomer);
+    if (error) throw error;
+    this.reset();
+    await loadCustomers();
+    clearMessage(message);
+    showPage("customers", document.querySelectorAll("nav button")[1]);
+  } catch (error) {
+    showMessage(message, error.message || "Could not save this customer.", "error");
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save Customer";
+  }
 });
 
-renderCustomers();
+function showPage(id, button) {
+  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll("nav button").forEach(navButton => navButton.classList.remove("active"));
+  if (button) button.classList.add("active");
+}
+
+document.getElementById("signOutBtn").addEventListener("click", async function() {
+  this.disabled = true;
+  const { error } = await veloSupabase.auth.signOut();
+  this.disabled = false;
+  if (error) {
+    alert("Could not sign out: " + error.message);
+    return;
+  }
+  currentUser = null;
+  currentBusiness = null;
+  customers = [];
+  appShell.style.display = "none";
+  authScreen.style.display = "block";
+  document.getElementById("signOutBtn").style.display = "none";
+  document.getElementById("authForm").reset();
+  setAuthMode("login");
+});
+
+async function startApp() {
+  const { data, error } = await veloSupabase.auth.getSession();
+  if (error) {
+    showMessage(authMessage, error.message, "error");
+    return;
+  }
+  if (data.session?.user) await openWorkspace(data.session.user);
+}
+veloSupabase.auth.onAuthStateChange((event, session) => {
+  if (event === "SIGNED_OUT") {
+    currentUser = null;
+    currentBusiness = null;
+    customers = [];
+    appShell.style.display = "none";
+    authScreen.style.display = "block";
+    document.getElementById("signOutBtn").style.display = "none";
+  }
+});
+startApp();
 </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-  const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
-
-  const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
-
-  window.veloSupabase = window.supabase.createClient(
-    VELO_SUPABASE_URL,
-    VELO_SUPABASE_KEY
-  );
-
-  console.log("VeloCRM Supabase connection initialized.");
-</script>
-
 </body>
-        </html>
-        
+</html>
