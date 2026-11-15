@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="VeloCRM by VeloAxis - Manage customers and grow your business.">
+<title>VeloCRM | VeloAxis</title>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #090909;
+  color: #f5f5f5;
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+}
+
+header {
+  padding: 20px;
+  border-bottom: 1px solid #292929;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo { font-size: 23px; font-weight: bold; letter-spacing: 2px; }
+.logo span { color: #aaa; }
+.brand { color: #999; font-size: 11px; }
+
+main { padding: 25px 20px 40px; max-width: 1100px; margin: auto; }
+
+.welcome { margin-bottom: 25px; }
+.welcome small { color: #aaa; letter-spacing: 2px; }
+h1 { font-size: 28px; margin: 8px 0; }
+.welcome p { color: #999; font-size: 14px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 25px 0;
+}
+
+.stat, .panel {
+  background: #141414;
+  border: 1px solid #303030;
+  padding: 18px;
+  border-radius: 8px;
+}
+
+.stat small { color: #999; font-size: 12px; }
+.stat h2 { font-size: 27px; margin-top: 8px; }
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 28px 0 15px;
+}
+
+.section-heading h2 { font-size: 19px; }
+
+button {
+  background: #c0c0c0;
+  color: #080808;
+  border: none;
+  padding: 11px 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.customer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid #292929;
+}
+
+.customer:last-child { border-bottom: none; }
+.customer p { color: #999; font-size: 12px; }
+.tag { color: #c0c0c0; font-size: 11px; }
+
+.reminder {
+  padding: 13px 0;
+  border-bottom: 1px solid #292929;
+  font-size: 14px;
+}
+
+.reminder:last-child { border-bottom: none; }
+.reminder small { display: block; color: #999; }
+
+nav {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 15px 20px;
+  border-bottom: 1px solid #292929;
+}
+
+nav button {
+  background: #222;
+  color: #ccc;
+  white-space: nowrap;
+}
+
+nav button.active { background: #c0c0c0; color: #080808; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+input {
+  width: 100%;
+  background: #202020;
+  color: white;
+  border: 1px solid #444;
+  padding: 12px;
+  margin: 8px 0 15px;
+  border-radius: 4px;
+}
+
+label { color: #bbb; font-size: 13px; }
+
+.form-box { max-width: 450px; margin-top: 20px; }
+
+footer {
+  padding: 25px;
+  text-align: center;
+  border-top: 1px solid #292929;
+  color: #777;
+  font-size: 12px;
+}
+
+@media(min-width: 700px) {
+  .stats { grid-template-columns: repeat(4, 1fr); }
+  main { padding-top: 40px; }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <div class="logo">VELO<span>CRM</span></div>
+    <div class="brand">BY VELOAXIS</div>
+  </div>
+  <div class="tag">DEMO VERSION</div>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
+  <button onclick="showPage('customers',this)">Customers</button>
+  <button onclick="showPage('followups',this)">Follow-ups</button>
+  <button onclick="showPage('about',this)">About</button>
+</nav>
+
+<main>
+
+<section id="dashboard" class="page active">
+  <div class="welcome">
+    <small>BUSINESS OVERVIEW</small>
+    <h1>Welcome to VeloCRM.</h1>
+    <p>Organise your customers. Build stronger relationships. Grow smarter.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <small>Total Customers</small>
+      <h2 id="customerCount">4</h2>
+    </div>
+    <div class="stat">
+      <small>Follow-ups</small>
+      <h2>3</h2>
+    </div>
+    <div class="stat">
+      <small>Interactions</small>
+      <h2>12</h2>
+    </div>
+    <div class="stat">
+      <small>Business Growth</small>
+      <h2>—</h2>
+    </div>
+  </div>
+
+  <div class="section-heading">
+    <h2>Recent Customers</h2>
+    <button onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button>
+  </div>
+
+  <div class="panel" id="recentCustomers"></div>
+
+  <div class="section-heading">
+    <h2>Upcoming Follow-ups</h2>
+  </div>
+
+  <div class="panel">
+    <div class="reminder">Contact Daniel <small>Demo reminder · Tomorrow</small></div>
+    <div class="reminder">Follow up with Grace <small>Demo reminder · Wednesday</small></div>
+    <div class="reminder">Check in with Michael <small>Demo reminder · Friday</small></div>
+  </div>
+</section>
+
+<section id="customers" class="page">
+  <div class="welcome">
+    <small>CUSTOMER MANAGEMENT</small>
+    <h1>Your Customers</h1>
+    <p>Keep your customer information organised in one place.</p>
+  </div>
+
+  <div class="section-heading">
+    <h2>Customer Records</h2>
+    <button onclick="showPage('addCustomer',null)">+ Add Customer</button>
+  </div>
+
+  <div class="panel" id="customerList"></div>
+</section>
+
+<section id="addCustomer" class="page">
+  <div class="welcome">
+    <small>CUSTOMER MANAGEMENT</small>
+    <h1>Add a Customer</h1>
+    <p>Enter sample information to test the prototype.</p>
+  </div>
+
+  <div class="form-box">
+    <form id="customerForm">
+      <label>Customer Name</label>
+      <input id="name" required placeholder="Enter customer name">
+
+      <label>Phone Number</label>
+      <input id="phone" type="tel" placeholder="Enter phone number">
+
+      <label>Business Email</label>
+      <input id="email" type="email" placeholder="Enter email address">
+
+      <button type="submit">Save Customer</button>
+      <button type="button" onclick="showPage('customers',null)" style="background:#333;color:white;margin-left:5px;">Cancel</button>
+    </form>
+  </div>
+</section>
+
+<section id="followups" class="page">
+  <div class="welcome">
+    <small>CUSTOMER RELATIONSHIPS</small>
+    <h1>Follow-ups</h1>
+    <p>Stay connected with the customers who matter to your business.</p>
+  </div>
+
+  <div class="panel">
+    <div class="reminder">Contact Daniel <small>Tomorrow · Demo reminder</small></div>
+    <div class="reminder">Follow up with Grace <small>Wednesday · Demo reminder</small></div>
+    <div class="reminder">Check in with Michael <small>Friday · Demo reminder</small></div>
+  </div>
+</section>
+
+<section id="about" class="page">
+  <div class="welcome">
+    <small>POWERED BY VELOAXIS</small>
+    <h1>About VeloCRM</h1>
+    <p>VeloCRM is being developed to help businesses manage customers, track interactions and organise follow-ups.</p>
+  </div>
+  <div class="panel">
+    <h2>Our mission</h2>
+    <p style="color:#aaa;margin-top:10px;">Make customer management simpler, smarter and more accessible for businesses.</p>
+    <p class="tag" style="margin-top:20px;">FIRST PRODUCT IN THE VELOAXIS ECOSYSTEM</p>
+  </div>
+</section>
+
+</main>
+
+<footer>VELOCRM © 2026 | A VELOAXIS PRODUCT</footer>
+
+<script>
+let customers = [
+  {name:"Daniel James",phone:"08000000001",email:"daniel@example.com"},
+  {name:"Grace Williams",phone:"08000000002",email:"grace@example.com"},
+  {name:"Michael Brown",phone:"08000000003",email:"michael@example.com"},
+  {name:"Sarah Johnson",phone:"08000000004",email:"sarah@example.com"}
+];
+
+function showPage(id,button) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  if(button) button.classList.add('active');
+  renderCustomers();
+}
+
+function renderCustomers() {
+  const html = customers.map(c => `
+    <div class="customer">
+      <div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div>
+      <span class="tag">Customer</span>
+    </div>
+  `).join('');
+
+  document.getElementById('customerList').innerHTML = html;
+  document.getElementById('recentCustomers').innerHTML =
+    customers.slice(0,3).map(c => `
+      <div class="customer">
+        <div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div>
+        <span class="tag">Customer</span>
+      </div>
+    `).join('');
+
+  document.getElementById('customerCount').textContent = customers.length;
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  })[char]);
+}
+
+document.getElementById('customerForm').addEventListener('submit',function(e) {
+  e.preventDefault();
+  customers.push({
+    name:document.getElementById('name').value,
+    phone:document.getElementById('phone').value,
+    email:document.getElementById('email').value
+  });
+  this.reset();
+  showPage('customers',document.querySelectorAll('nav button')[1]);
+});
+
+renderCustomers();
+</script>
+
+</body>
+        </html>
+        
