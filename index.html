@@ -22,8 +22,12 @@ h1{font-size:28px;margin:8px 0}.welcome p{color:#999;font-size:14px}
 button{background:#c0c0c0;color:#080808;border:none;padding:11px 15px;border-radius:4px;font-weight:bold;cursor:pointer}
 button:disabled{opacity:.55;cursor:not-allowed}
 .secondary{background:#333;color:#fff}
+.danger{background:#713737;color:#fff}
 .customer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 0;border-bottom:1px solid #292929}
-.customer:last-child{border-bottom:none}.customer p{color:#999;font-size:12px;overflow-wrap:anywhere}
+.customer:last-child{border-bottom:none}
+.customer p{color:#999;font-size:12px;overflow-wrap:anywhere}
+.customer-select{background:transparent;color:#f5f5f5;padding:0;text-align:left;flex:1;min-width:0}
+.customer-select:hover{color:#c0c0c0}
 .tag{color:#c0c0c0;font-size:11px}
 nav{display:flex;gap:10px;overflow-x:auto;padding:15px 20px;border-bottom:1px solid #292929}
 nav button{background:#222;color:#ccc;white-space:nowrap}
@@ -43,6 +47,11 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .success{border-color:#547b5c;color:#c8f1ce}
 #appShell{display:none}
 .empty{color:#999;font-size:14px;padding:10px 0}
+.detail-panel{margin-top:16px}
+.detail-line{padding:9px 0;border-bottom:1px solid #292929;overflow-wrap:anywhere}
+.detail-line:last-of-type{border-bottom:none}
+.detail-label{display:block;color:#999;font-size:11px;text-transform:uppercase;letter-spacing:1px}
+.detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}main{padding-top:40px}}
 </style>
 </head>
@@ -112,6 +121,8 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Your Customers</h1><p>Keep your customer information organised in one place.</p></div>
   <div class="section-heading"><h2>Customer Records</h2><button onclick="showPage('addCustomer',null)">+ Add Customer</button></div>
   <div class="panel" id="customerList"><p class="empty">Loading customer records...</p></div>
+  <div id="customerDetails" class="panel detail-panel" style="display:none"></div>
+  <div id="customerActionMessage" class="notice" style="display:none" role="status"></div>
 </section>
 
 <section id="addCustomer" class="page">
@@ -152,10 +163,14 @@ let authMode = "login";
 let currentUser = null;
 let currentBusiness = null;
 let customers = [];
+let selectedCustomerId = null;
+let editingCustomer = false;
 
 const authScreen = document.getElementById("authScreen");
 const appShell = document.getElementById("appShell");
 const authMessage = document.getElementById("authMessage");
+const customerDetails = document.getElementById("customerDetails");
+const customerActionMessage = document.getElementById("customerActionMessage");
 
 function showMessage(element, message, type) {
   element.textContent = message;
@@ -269,6 +284,10 @@ async function loadCustomers() {
     .order("created_at", { ascending: false });
   if (error) throw error;
   customers = data || [];
+  if (selectedCustomerId && !customers.some(c => c.id === selectedCustomerId)) {
+    selectedCustomerId = null;
+    editingCustomer = false;
+  }
   renderCustomers();
 }
 
@@ -280,15 +299,140 @@ function escapeHTML(value) {
 function renderCustomers() {
   const customerHTML = customers.length ? customers.map(c => `
     <div class="customer">
-      <div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")} · ${escapeHTML(c.email || "No email added")}</p></div>
-      <span class="tag">Customer</span>
+      <button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}">
+        <strong>${escapeHTML(c.name)}</strong>
+        <p>${escapeHTML(c.phone || "No phone added")} · ${escapeHTML(c.email || "No email added")}</p>
+      </button>
+      <span class="tag">View details</span>
     </div>`).join("") : '<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
   document.getElementById("customerList").innerHTML = customerHTML;
   document.getElementById("recentCustomers").innerHTML = customers.length
     ? customers.slice(0,3).map(c => `<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div><span class="tag">Customer</span></div>`).join("")
     : '<p class="empty">Your customer records will appear here.</p>';
   document.getElementById("customerCount").textContent = customers.length;
+  renderCustomerDetails();
 }
+
+function renderCustomerDetails() {
+  const customer = customers.find(c => c.id === selectedCustomerId);
+  if (!customer) {
+    customerDetails.style.display = "none";
+    customerDetails.innerHTML = "";
+    return;
+  }
+  customerDetails.style.display = "block";
+  if (editingCustomer) {
+    customerDetails.innerHTML = `
+      <h2>Edit Customer</h2>
+      <p class="empty">Update this customer's information, then save your changes.</p>
+      <form id="editCustomerForm">
+        <label for="editName">Customer name</label>
+        <input id="editName" name="name" required maxlength="150" value="${escapeHTML(customer.name)}">
+        <label for="editPhone">Phone number</label>
+        <input id="editPhone" name="phone" type="tel" value="${escapeHTML(customer.phone || "")}">
+        <label for="editEmail">Customer email</label>
+        <input id="editEmail" name="email" type="email" value="${escapeHTML(customer.email || "")}">
+        <div class="detail-actions">
+          <button id="updateCustomerBtn" type="submit">Save Changes</button>
+          <button type="button" class="secondary" data-action="cancel-edit">Cancel</button>
+        </div>
+      </form>`;
+  } else {
+    customerDetails.innerHTML = `
+      <small class="tag">CUSTOMER DETAILS</small>
+      <h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2>
+      <div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone || "Not provided")}</div>
+      <div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email || "Not provided")}</div>
+      <div class="detail-actions">
+        <button type="button" data-action="edit">Edit Customer</button>
+        <button type="button" class="danger" data-action="delete">Delete Customer</button>
+        <button type="button" class="secondary" data-action="close-details">Close</button>
+      </div>`;
+  }
+}
+
+document.getElementById("customerList").addEventListener("click", event => {
+  const button = event.target.closest("[data-action='view']");
+  if (!button) return;
+  selectedCustomerId = button.dataset.id;
+  editingCustomer = false;
+  clearMessage(customerActionMessage);
+  renderCustomerDetails();
+});
+
+customerDetails.addEventListener("click", async event => {
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  const action = button.dataset.action;
+  if (action === "edit") {
+    editingCustomer = true;
+    renderCustomerDetails();
+  } else if (action === "cancel-edit") {
+    editingCustomer = false;
+    renderCustomerDetails();
+  } else if (action === "close-details") {
+    selectedCustomerId = null;
+    editingCustomer = false;
+    renderCustomerDetails();
+  } else if (action === "delete") {
+    const customer = customers.find(c => c.id === selectedCustomerId);
+    if (!customer) return;
+    if (!window.confirm("Delete " + customer.name + "? This cannot be undone.")) return;
+    button.disabled = true;
+    try {
+      const { error } = await veloSupabase
+        .from("customers")
+        .delete()
+        .eq("id", customer.id)
+        .eq("business_id", currentBusiness.id);
+      if (error) throw error;
+      selectedCustomerId = null;
+      editingCustomer = false;
+      await loadCustomers();
+      showMessage(customerActionMessage, "Customer deleted successfully.", "success");
+    } catch (error) {
+      showMessage(customerActionMessage, error.message || "Could not delete this customer.", "error");
+      button.disabled = false;
+    }
+  }
+});
+
+customerDetails.addEventListener("submit", async event => {
+  if (event.target.id !== "editCustomerForm") return;
+  event.preventDefault();
+  const button = document.getElementById("updateCustomerBtn");
+  const customer = customers.find(c => c.id === selectedCustomerId);
+  if (!customer || !currentBusiness) return;
+  const updatedCustomer = {
+    name: document.getElementById("editName").value.trim(),
+    phone: document.getElementById("editPhone").value.trim() || null,
+    email: document.getElementById("editEmail").value.trim() || null
+  };
+  if (!updatedCustomer.name) {
+    showMessage(customerActionMessage, "Customer name is required.", "error");
+    return;
+  }
+  button.disabled = true;
+  button.textContent = "Saving...";
+  try {
+    const { data, error } = await veloSupabase
+      .from("customers")
+      .update(updatedCustomer)
+      .eq("id", customer.id)
+      .eq("business_id", currentBusiness.id)
+      .select("id,business_id,name,phone,email,created_at")
+      .single();
+    if (error) throw error;
+    customers = customers.map(c => c.id === data.id ? data : c);
+    editingCustomer = false;
+    renderCustomers();
+    showMessage(customerActionMessage, "Customer details updated successfully.", "success");
+  } catch (error) {
+    showMessage(customerActionMessage, error.message || "Could not update this customer.", "error");
+    button.disabled = false;
+    button.textContent = "Save Changes";
+  }
+});
 
 document.getElementById("customerForm").addEventListener("submit", async function(event) {
   event.preventDefault();
@@ -311,6 +455,8 @@ document.getElementById("customerForm").addEventListener("submit", async functio
     const { error } = await veloSupabase.from("customers").insert(newCustomer);
     if (error) throw error;
     this.reset();
+    selectedCustomerId = null;
+    editingCustomer = false;
     await loadCustomers();
     clearMessage(message);
     showPage("customers", document.querySelectorAll("nav button")[1]);
@@ -340,6 +486,8 @@ document.getElementById("signOutBtn").addEventListener("click", async function()
   currentUser = null;
   currentBusiness = null;
   customers = [];
+  selectedCustomerId = null;
+  editingCustomer = false;
   appShell.style.display = "none";
   authScreen.style.display = "block";
   document.getElementById("signOutBtn").style.display = "none";
@@ -360,6 +508,8 @@ veloSupabase.auth.onAuthStateChange((event, session) => {
     currentUser = null;
     currentBusiness = null;
     customers = [];
+    selectedCustomerId = null;
+    editingCustomer = false;
     appShell.style.display = "none";
     authScreen.style.display = "block";
     document.getElementById("signOutBtn").style.display = "none";
