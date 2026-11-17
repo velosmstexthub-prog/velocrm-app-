@@ -84,6 +84,46 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .timeline-item .tag{font-size:11px}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}main{padding-top:40px}}
 
+
+/* Dashboard refresh: clear hierarchy, useful shortcuts, mobile-first cards */
+.dashboard-hero{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:24px;margin-bottom:22px;border:1px solid #444;border-radius:14px;background:radial-gradient(circle at 90% 10%,rgba(210,210,210,.12),transparent 34%),linear-gradient(135deg,#1c1c1c,#101010 72%)}
+.dashboard-hero .welcome{margin:0;max-width:620px}
+.dashboard-hero .welcome small{font-size:11px;font-weight:bold;letter-spacing:2.2px;color:#c4c4c4}
+.dashboard-hero h1{font-size:clamp(25px,4vw,34px);line-height:1.15;margin:10px 0}
+.dashboard-hero .welcome p{font-size:14px;max-width:460px;line-height:1.65}
+.dashboard-hero-mark{flex:0 0 auto;width:76px;height:76px;border:1px solid #555;border-radius:18px;display:grid;place-items:center;color:#d5d5d5;font-size:28px;font-weight:bold;letter-spacing:-2px;background:linear-gradient(145deg,#292929,#111);box-shadow:inset 0 1px rgba(255,255,255,.08)}
+.dashboard-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 24px}
+.dashboard-action{min-height:54px;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 10px;border:1px solid #444;border-radius:9px;background:#1b1b1b;color:#eee;font-size:13px;text-align:center;line-height:1.3}
+.dashboard-action.primary{background:linear-gradient(135deg,#dedede,#aaa);color:#090909;border-color:#e2e2e2}
+.dashboard-section-label{color:#aaa;font-size:11px;font-weight:bold;letter-spacing:2px;margin:0 0 12px}
+.dashboard-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 28px}
+.dashboard-stat{position:relative;min-width:0;min-height:112px;padding:17px;border:1px solid #343434;border-radius:12px;background:linear-gradient(145deg,#191919,#111)}
+.dashboard-stat span{display:block;color:#aaa;font-size:12px;line-height:1.4}
+.dashboard-stat strong{display:block;font-size:30px;line-height:1.2;margin-top:12px;font-weight:700;color:#f4f4f4}
+.dashboard-stat .stat-accent{display:block;width:27px;height:2px;background:#bdbdbd;margin-top:11px;opacity:.8}
+.dashboard-content-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:14px;align-items:start}
+.dashboard-card{min-width:0;padding:18px;border:1px solid #333;border-radius:12px;background:#141414}
+.dashboard-card .section-heading{margin:0 0 12px}
+.dashboard-card .section-heading h2{font-size:17px}
+.dashboard-card .customer{padding:13px 0}
+.dashboard-card .followup{padding:13px 0}
+.dashboard-card .empty{line-height:1.6}
+.dashboard-card .empty-action{margin-top:12px;background:#292929;color:#eee;border:1px solid #444}
+@media(max-width:600px){
+ main{padding:22px 16px 34px}
+ .dashboard-hero{padding:19px;gap:10px}
+ .dashboard-hero-mark{width:54px;height:54px;border-radius:14px;font-size:21px}
+ .dashboard-hero .welcome p{font-size:13px}
+ .dashboard-actions{grid-template-columns:1fr 1fr;gap:8px}
+ .dashboard-action{font-size:12px;min-height:50px}
+ .dashboard-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .dashboard-stat{min-height:100px;padding:14px}
+ .dashboard-stat strong{font-size:27px}
+ .dashboard-content-grid{grid-template-columns:1fr;gap:12px}
+ .dashboard-card{padding:15px}
+}
+@media(min-width:900px){.dashboard-hero{padding:30px}.dashboard-hero-mark{width:90px;height:90px;font-size:33px}}
+
 /* VeloCRM branded confirmation dialog */
 .confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:none;align-items:center;justify-content:center;padding:20px;z-index:9999}
 .confirm-overlay.show{display:flex}
@@ -131,17 +171,31 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 </nav>
 <main>
 <section id="dashboard" class="page active">
-  <div class="welcome"><small>BUSINESS OVERVIEW</small><h1>Welcome to VeloCRM.</h1><p>Organise your customers. Build stronger relationships. Grow smarter.</p></div>
-  <div class="stats">
-    <div class="stat"><small>Total Customers</small><h2 id="customerCount">0</h2></div>
-    <div class="stat"><small>Pending Follow-ups</small><h2 id="followupCount">0</h2></div>
-    <div class="stat"><small>Interactions</small><h2 id="interactionCount">0</h2></div>
-    <div class="stat"><small>Business Growth</small><h2>—</h2></div>
+  <div class="dashboard-hero">
+    <div class="welcome"><small>YOUR BUSINESS AT A GLANCE</small><h1>Welcome to VeloCRM.</h1><p>Keep customer relationships organised, follow up on time and stay focused on growing your business.</p></div>
+    <div class="dashboard-hero-mark" aria-hidden="true">VA</div>
   </div>
-  <div class="section-heading"><h2>Recent Customers</h2><button onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button></div>
-  <div class="panel" id="recentCustomers"><p class="empty">Your customer records will appear here.</p></div>
-  <div class="section-heading"><h2>Upcoming Follow-ups</h2></div>
-  <div class="panel" id="upcomingFollowups"><p class="empty">Your upcoming reminders will appear here.</p></div>
+  <div class="dashboard-actions" aria-label="Quick actions">
+    <button class="dashboard-action primary" type="button" onclick="showPage('addCustomer',null)">＋ Add customer</button>
+    <button class="dashboard-action" type="button" onclick="showPage('followups',document.querySelectorAll('nav button')[3])">＋ Schedule follow-up</button>
+    <button class="dashboard-action" type="button" onclick="showPage('interactions',document.querySelectorAll('nav button')[4])">＋ Record interaction</button>
+  </div>
+  <div class="dashboard-section-label">BUSINESS OVERVIEW</div>
+  <div class="dashboard-stats">
+    <div class="dashboard-stat"><span>Total customers</span><strong id="customerCount">0</strong><i class="stat-accent"></i></div>
+    <div class="dashboard-stat"><span>Pending follow-ups</span><strong id="followupCount">0</strong><i class="stat-accent"></i></div>
+    <div class="dashboard-stat"><span>Interactions recorded</span><strong id="interactionCount">0</strong><i class="stat-accent"></i></div>
+  </div>
+  <div class="dashboard-content-grid">
+    <section class="dashboard-card">
+      <div class="section-heading"><h2>Recent customers</h2><button type="button" class="secondary" onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button></div>
+      <div id="recentCustomers"><p class="empty">Your customer records will appear here.</p></div>
+    </section>
+    <section class="dashboard-card">
+      <div class="section-heading"><h2>Upcoming follow-ups</h2><button type="button" class="secondary" onclick="showPage('followups',document.querySelectorAll('nav button')[3])">View all</button></div>
+      <div id="upcomingFollowups"><p class="empty">Your upcoming reminders will appear here.</p></div>
+    </section>
+  </div>
 </section>
 <section id="customers" class="page">
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Your Customers</h1><p>Keep your customer information organised in one place.</p></div>
@@ -371,7 +425,7 @@ function renderFollowupCustomerOptions(){
 }
 function renderFollowUps(){
  const pending=followUps.filter(f=>(f.status||"pending").toLowerCase()!=="completed");document.getElementById("followupCount").textContent=pending.length;const upcoming=pending.slice(0,3);
- document.getElementById("upcomingFollowups").innerHTML=upcoming.length?upcoming.map(f=>`<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><p>${escapeHTML(f.note)}</p><p>${escapeHTML(formatDate(f.due_at))}</p></div>`).join(""):'<p class="empty">No pending follow-ups yet. Add a reminder in the Follow-ups section.</p>';
+ document.getElementById("upcomingFollowups").innerHTML=upcoming.length?upcoming.map(f=>`<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><p>${escapeHTML(f.note)}</p><p>${escapeHTML(formatDate(f.due_at))}</p></div>`).join(""):'<div><p class="empty">You are all caught up. Schedule a reminder when a customer needs your attention.</p><button type="button" class="empty-action" onclick="showPage(\'followups\',document.querySelectorAll(\'nav button\')[3])">Schedule a follow-up</button></div>';
  const list=document.getElementById("followupList");if(!followUps.length){list.innerHTML='<p class="empty">No follow-up reminders yet. Use the form above to create your first reminder.</p>';return}
  list.innerHTML=followUps.map(f=>{const completed=(f.status||"pending").toLowerCase()==="completed";return `<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><span class="status">${completed?"Completed":"Pending"}</span><p>${escapeHTML(f.note)}</p><p>Due: ${escapeHTML(formatDate(f.due_at))}</p><div class="followup-actions">${completed?"":`<button type="button" data-followup-action="complete" data-id="${escapeHTML(f.id)}">Mark completed</button>`}<button type="button" class="danger" data-followup-action="delete" data-id="${escapeHTML(f.id)}">Delete</button></div></div>`}).join("")
 }
