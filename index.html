@@ -143,7 +143,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 </section>
 <section id="customers" class="page">
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Your Customers</h1><p>Keep your customer information organised in one place.</p></div>
-  <div class="section-heading"><h2>Customer Records</h2><button onclick="showPage('addCustomer',null)">+ Add Customer</button></div>
+  <div class="section-heading"><h2>Customer Records</h2><div class="detail-actions" style="margin-top:0"><button type="button" id="exportCustomersBtn" class="secondary" disabled>Export Customers</button><button type="button" onclick="showPage('addCustomer',null)">+ Add Customer</button></div></div>
   <div class="customer-tools">
     <input id="customerSearch" type="search" placeholder="Search by name, phone or email" aria-label="Search customers">
     <select id="customerFilter" aria-label="Filter customers">
@@ -276,10 +276,26 @@ function renderCustomers(){
  if(!customers.length)customerHTML='<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
  else if(!matchingCustomers.length)customerHTML='<p class="empty">No customers match your search or filter. Try a different search or choose “All customers”.</p>';
  else customerHTML=matchingCustomers.map(c=>`<div class="customer"><button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}"><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")} · ${escapeHTML(c.email||"No email added")}</p></button><span class="tag">View details</span></div>`).join("");
- document.getElementById("customerList").innerHTML=customerHTML;document.getElementById("recentCustomers").innerHTML=customers.length?customers.slice(0,3).map(c=>`<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")}</p></div><span class="tag">Customer</span></div>`).join(""):'<p class="empty">Your customer records will appear here.</p>';document.getElementById("customerCount").textContent=customers.length;renderCustomerDetails();renderFollowupCustomerOptions()
+ document.getElementById("customerList").innerHTML=customerHTML;document.getElementById("recentCustomers").innerHTML=customers.length?customers.slice(0,3).map(c=>`<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")}</p></div><span class="tag">Customer</span></div>`).join(""):'<p class="empty">Your customer records will appear here.</p>';document.getElementById("customerCount").textContent=customers.length;document.getElementById("exportCustomersBtn").disabled=customers.length===0;renderCustomerDetails();renderFollowupCustomerOptions()
 }
 document.getElementById("customerSearch").addEventListener("input",renderCustomers);
 document.getElementById("customerFilter").addEventListener("change",renderCustomers);
+function csvCell(value){
+ let text=String(value??"");
+ if(/^[\s]*[=+@\-]/.test(text))text="'"+text;
+ return '"'+text.replace(/"/g,'""')+'"';
+}
+document.getElementById("exportCustomersBtn").addEventListener("click",function(){
+ if(!customers.length)return;
+ const headers=["Customer Name","Phone Number","Email Address","Created At"];
+ const rows=customers.map(customer=>[customer.name,customer.phone,customer.email,customer.created_at].map(csvCell).join(","));
+ const csv="\uFEFF"+[headers.map(csvCell).join(","),...rows].join("\r\n");
+ const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+ const url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="veloCRM-customers-"+new Date().toISOString().slice(0,10)+".csv";
+ document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+ showMessage(document.getElementById("customerActionMessage"),"Customer records exported successfully.","success");
+});
 function renderFollowupCustomerOptions(){
  const select=document.getElementById("followupCustomer"),previousValue=select.value;select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");if(customers.some(c=>c.id===previousValue))select.value=previousValue;const noCustomers=customers.length===0;document.getElementById("saveFollowupBtn").disabled=noCustomers;if(noCustomers)select.innerHTML='<option value="">Add a customer first</option>'
 }
