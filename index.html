@@ -64,6 +64,13 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .interaction:last-child{border-bottom:none}
 .interaction p{color:#aaa;font-size:13px;overflow-wrap:anywhere;margin:5px 0}
 .status{display:inline-block;font-size:11px;padding:3px 8px;border:1px solid #555;border-radius:20px;color:#ddd;margin-left:6px}
+.customer-profile-summary{margin-top:22px;padding-top:18px;border-top:1px solid #303030}
+.customer-profile-summary h3{font-size:17px;margin-bottom:5px}
+.customer-summary-intro{color:#999;font-size:12px;margin-bottom:14px}
+.customer-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.customer-summary-stat{background:#101010;border:1px solid #303030;border-radius:6px;padding:12px}
+.customer-summary-stat span{display:block;color:#999;font-size:11px}
+.customer-summary-stat strong{display:block;font-size:24px;margin-top:4px}
 .activity-timeline{margin-top:24px;padding-top:18px;border-top:1px solid #303030}
 .activity-timeline h3{font-size:17px;margin-bottom:5px}
 .activity-timeline-intro{color:#999;font-size:12px;margin-bottom:16px}
@@ -282,6 +289,13 @@ function renderFollowUps(){
  const list=document.getElementById("followupList");if(!followUps.length){list.innerHTML='<p class="empty">No follow-up reminders yet. Use the form above to create your first reminder.</p>';return}
  list.innerHTML=followUps.map(f=>{const completed=(f.status||"pending").toLowerCase()==="completed";return `<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><span class="status">${completed?"Completed":"Pending"}</span><p>${escapeHTML(f.note)}</p><p>Due: ${escapeHTML(formatDate(f.due_at))}</p><div class="followup-actions">${completed?"":`<button type="button" data-followup-action="complete" data-id="${escapeHTML(f.id)}">Mark completed</button>`}<button type="button" class="danger" data-followup-action="delete" data-id="${escapeHTML(f.id)}">Delete</button></div></div>`}).join("")
 }
+function renderCustomerSummary(customerId){
+ const customerInteractions=interactions.filter(item=>item.customer_id===customerId);
+ const customerFollowUps=followUps.filter(item=>item.customer_id===customerId);
+ const pendingFollowUps=customerFollowUps.filter(item=>(item.status||"pending").toLowerCase()!=="completed");
+ const completedFollowUps=customerFollowUps.filter(item=>(item.status||"pending").toLowerCase()==="completed");
+ return `<section class="customer-profile-summary"><h3>Customer Profile Summary</h3><p class="customer-summary-intro">A quick overview of this customer's activity and follow-ups.</p><div class="customer-summary-grid"><div class="customer-summary-stat"><span>Total Interactions</span><strong>${customerInteractions.length}</strong></div><div class="customer-summary-stat"><span>Pending Follow-ups</span><strong>${pendingFollowUps.length}</strong></div><div class="customer-summary-stat"><span>Completed Follow-ups</span><strong>${completedFollowUps.length}</strong></div><div class="customer-summary-stat"><span>Total Follow-ups</span><strong>${customerFollowUps.length}</strong></div></div></section>`;
+}
 function renderCustomerTimeline(customerId){
  const events=[
   ...interactions.filter(item=>item.customer_id===customerId).map(item=>({type:"interaction",title:"Interaction recorded",note:item.note,date:item.created_at})),
@@ -293,7 +307,7 @@ function renderCustomerTimeline(customerId){
 function renderCustomerDetails(){
  const customer=customers.find(c=>c.id===selectedCustomerId);if(!customer){customerDetails.style.display="none";customerDetails.innerHTML="";return}customerDetails.style.display="block";
  if(editingCustomer)customerDetails.innerHTML=`<h2>Edit Customer</h2><p class="empty">Update this customer's information, then save your changes.</p><form id="editCustomerForm"><label for="editName">Customer name</label><input id="editName" name="name" required maxlength="150" value="${escapeHTML(customer.name)}"><label for="editPhone">Phone number</label><input id="editPhone" name="phone" type="tel" value="${escapeHTML(customer.phone||"")}"><label for="editEmail">Customer email</label><input id="editEmail" name="email" type="email" value="${escapeHTML(customer.email||"")}"><div class="detail-actions"><button id="updateCustomerBtn" type="submit">Save Changes</button><button type="button" class="secondary" data-action="cancel-edit">Cancel</button></div></form>`;
- else customerDetails.innerHTML=`<small class="tag">CUSTOMER DETAILS</small><h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2><div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone||"Not provided")}</div><div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email||"Not provided")}</div><div class="detail-actions"><button type="button" data-action="edit">Edit Customer</button><button type="button" class="danger" data-action="delete">Delete Customer</button><button type="button" class="secondary" data-action="close-details">Close</button></div>${renderCustomerTimeline(customer.id)}`
+ else customerDetails.innerHTML=`<small class="tag">CUSTOMER DETAILS</small><h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2><div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone||"Not provided")}</div><div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email||"Not provided")}</div><div class="detail-actions"><button type="button" data-action="edit">Edit Customer</button><button type="button" class="danger" data-action="delete">Delete Customer</button><button type="button" class="secondary" data-action="close-details">Close</button></div>${renderCustomerSummary(customer.id)}${renderCustomerTimeline(customer.id)}`
 }
 document.getElementById("customerList").addEventListener("click",event=>{const button=event.target.closest("[data-action='view']");if(!button)return;selectedCustomerId=button.dataset.id;editingCustomer=false;clearMessage(customerActionMessage);renderCustomerDetails()});
 customerDetails.addEventListener("click",async event=>{
