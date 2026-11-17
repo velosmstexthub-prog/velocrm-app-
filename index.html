@@ -31,9 +31,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .customer-tools input,.customer-tools select{margin:0}
 @media(min-width:520px){.customer-tools{grid-template-columns:2fr 1fr}}
 .tag{color:#c0c0c0;font-size:11px}
-nav{display:flex;gap:10px;overflow-x:auto;padding:15px 20px;border-bottom:1px solid #292929}
-nav button{background:#222;color:#ccc;white-space:nowrap}
-nav button.active{background:#c0c0c0;color:#080808}
+nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:14px 16px;border-bottom:1px solid #292929;background:#0d0d0d}
+nav button{background:#1b1b1b;color:#ccc;white-space:normal;min-height:46px;padding:10px 7px;border:1px solid #303030;border-radius:7px;font-size:13px;line-height:1.25;overflow-wrap:anywhere}
+nav button.active{background:linear-gradient(135deg,#dedede,#a9a9a9);color:#080808;border-color:#eee;box-shadow:0 3px 12px rgba(192,192,192,.12)}
+nav button:focus-visible{outline:2px solid #c0c0c0;outline-offset:2px}
+@media(min-width:700px){nav{grid-template-columns:repeat(6,minmax(0,1fr));max-width:1100px;margin:auto;padding:16px 20px}nav button{font-size:14px}}
 .page{display:none}.page.active{display:block}
 input,select,textarea{width:100%;background:#202020;color:white;border:1px solid #444;padding:12px;margin:8px 0 15px;border-radius:4px;font:inherit}
 select option{background:#202020;color:#fff}
