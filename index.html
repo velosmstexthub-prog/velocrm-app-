@@ -27,6 +27,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .customer p{color:#999;font-size:12px;overflow-wrap:anywhere}
 .customer-select{background:transparent;color:#f5f5f5;padding:0;text-align:left;flex:1;min-width:0}
 .customer-select:hover{color:#c0c0c0}
+.customer-tools{display:grid;grid-template-columns:1fr;gap:8px;margin:0 0 15px}
+.customer-tools input,.customer-tools select{margin:0}
+@media(min-width:520px){.customer-tools{grid-template-columns:2fr 1fr}}
 .tag{color:#c0c0c0;font-size:11px}
 nav{display:flex;gap:10px;overflow-x:auto;padding:15px 20px;border-bottom:1px solid #292929}
 nav button{background:#222;color:#ccc;white-space:nowrap}
@@ -112,6 +115,14 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 <section id="customers" class="page">
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Your Customers</h1><p>Keep your customer information organised in one place.</p></div>
   <div class="section-heading"><h2>Customer Records</h2><button onclick="showPage('addCustomer',null)">+ Add Customer</button></div>
+  <div class="customer-tools">
+    <input id="customerSearch" type="search" placeholder="Search by name, phone or email" aria-label="Search customers">
+    <select id="customerFilter" aria-label="Filter customers">
+      <option value="all">All customers</option>
+      <option value="phone">Customers with phone</option>
+      <option value="email">Customers with email</option>
+    </select>
+  </div>
   <div class="panel" id="customerList"><p class="empty">Loading customer records...</p></div>
   <div id="customerDetails" class="panel detail-panel" style="display:none"></div>
   <div id="customerActionMessage" class="notice" style="display:none" role="status"></div>
@@ -170,7 +181,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
 const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
 const veloSupabase = window.supabase.createClient(VELO_SUPABASE_URL, VELO_SUPABASE_KEY);
-let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],interactions=[],selectedCustomerId=null,editingCustomer=false,editingInteractionId=null;
+let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],interactions=[],selectedCustomerId=null,editingCustomer=false,editingInteractionId=null,customerFilter="all";
 const authScreen=document.getElementById("authScreen"),appShell=document.getElementById("appShell"),authMessage=document.getElementById("authMessage"),customerDetails=document.getElementById("customerDetails"),customerActionMessage=document.getElementById("customerActionMessage");
 function showMessage(element,message,type){element.textContent=message;element.className="notice "+(type||"");element.style.display="block"}
 function clearMessage(element){element.textContent="";element.style.display="none"}
@@ -208,9 +219,22 @@ function renderInteractions(){
 function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
 function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?"Date unavailable":date.toLocaleString()}
 function renderCustomers(){
- const customerHTML=customers.length?customers.map(c=>`<div class="customer"><button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}"><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")} · ${escapeHTML(c.email||"No email added")}</p></button><span class="tag">View details</span></div>`).join(""):'<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
+ const search=(document.getElementById("customerSearch")?.value||"").trim().toLowerCase();
+ const filter=document.getElementById("customerFilter")?.value||customerFilter;
+ customerFilter=filter;
+ const matchingCustomers=customers.filter(c=>{
+  const matchesSearch=!search||[c.name,c.phone,c.email].some(value=>(value||"").toLowerCase().includes(search));
+  const matchesFilter=filter==="phone"?!!(c.phone||"").trim():filter==="email"?!!(c.email||"").trim():true;
+  return matchesSearch&&matchesFilter;
+ });
+ let customerHTML;
+ if(!customers.length)customerHTML='<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
+ else if(!matchingCustomers.length)customerHTML='<p class="empty">No customers match your search or filter. Try a different search or choose “All customers”.</p>';
+ else customerHTML=matchingCustomers.map(c=>`<div class="customer"><button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}"><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")} · ${escapeHTML(c.email||"No email added")}</p></button><span class="tag">View details</span></div>`).join("");
  document.getElementById("customerList").innerHTML=customerHTML;document.getElementById("recentCustomers").innerHTML=customers.length?customers.slice(0,3).map(c=>`<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")}</p></div><span class="tag">Customer</span></div>`).join(""):'<p class="empty">Your customer records will appear here.</p>';document.getElementById("customerCount").textContent=customers.length;renderCustomerDetails();renderFollowupCustomerOptions()
 }
+document.getElementById("customerSearch").addEventListener("input",renderCustomers);
+document.getElementById("customerFilter").addEventListener("change",renderCustomers);
 function renderFollowupCustomerOptions(){
  const select=document.getElementById("followupCustomer"),previousValue=select.value;select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");if(customers.some(c=>c.id===previousValue))select.value=previousValue;const noCustomers=customers.length===0;document.getElementById("saveFollowupBtn").disabled=noCustomers;if(noCustomers)select.innerHTML='<option value="">Add a customer first</option>'
 }
