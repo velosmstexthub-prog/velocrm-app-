@@ -83,6 +83,27 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .timeline-item p{font-size:13px;color:#bbb;margin:5px 0;overflow-wrap:anywhere}
 .timeline-item .tag{font-size:11px}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}main{padding-top:40px}}
+/* Add Customer form refinement */
+.add-customer-layout{max-width:680px;margin-top:20px}
+.add-customer-intro{padding:16px 18px;margin-bottom:16px;border:1px solid #353535;border-radius:10px;background:linear-gradient(145deg,#191919,#101010)}
+.add-customer-intro strong{display:block;font-size:14px;margin-bottom:4px;color:#eee}
+.add-customer-intro p{font-size:12px;color:#999;line-height:1.6}
+.customer-form-card{padding:20px;border:1px solid #353535;border-radius:10px;background:#141414}
+.customer-form-section+.customer-form-section{border-top:1px solid #303030;margin-top:20px;padding-top:18px}
+.customer-form-section h3{font-size:14px;margin-bottom:4px;color:#eee}
+.customer-form-section>p{font-size:12px;color:#888;margin-bottom:14px}
+.customer-field{margin-bottom:14px}
+.customer-field label{display:flex;align-items:center;gap:7px;margin-bottom:6px;color:#ddd;font-size:13px;font-weight:600}
+.customer-field label span{font-size:10px;color:#888;font-weight:400}
+.customer-field input{margin:0;background:#1d1d1d;border-color:#444;border-radius:7px;min-height:47px}
+.customer-field input:focus{outline:2px solid #aaa;outline-offset:1px;border-color:#c0c0c0}
+.customer-field small{display:block;margin-top:5px;color:#858585;font-size:11px;line-height:1.45}
+.customer-form-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
+.customer-form-actions button{min-height:45px}
+.customer-form-actions #saveCustomerBtn{flex:1;min-width:150px}
+.customer-form-actions .secondary{min-width:110px}
+@media(max-width:520px){.customer-form-card{padding:16px}.add-customer-intro{padding:14px}.customer-form-actions{display:grid;grid-template-columns:1fr 1fr}.customer-form-actions #saveCustomerBtn{grid-column:1/-1}}
+
 
 
 /* Dashboard refresh: clear hierarchy, useful shortcuts, mobile-first cards */
@@ -659,15 +680,23 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 </section>
 <section id="addCustomer" class="page">
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Add a Customer</h1><p>Save a customer record to your business database.</p></div>
-  <div class="form-box">
-    <form id="customerForm">
-      <label for="name">Customer name</label><input id="name" required placeholder="Enter customer name">
-      <label for="phone">Phone number</label><input id="phone" type="tel" placeholder="Enter phone number">
-      <label for="email">Customer email</label><input id="email" type="email" placeholder="Enter email address">
-      <button id="saveCustomerBtn" type="submit">Save Customer</button>
-      <button type="button" class="secondary" onclick="showPage('customers',document.querySelectorAll('nav button')[1])" style="margin-left:5px">Cancel</button>
-    </form>
-    <div id="customerMessage" class="notice" style="display:none" role="status"></div>
+  <div class="add-customer-layout">
+    <div class="add-customer-intro"><strong>Build your customer list</strong><p>Add accurate contact details so you can call, email, record interactions and schedule follow-ups from one place. Customer name is required; phone and email are optional.</p></div>
+    <div class="customer-form-card">
+      <form id="customerForm">
+        <div class="customer-form-section">
+          <h3>Basic information</h3><p>Start with the name your business knows this customer by.</p>
+          <div class="customer-field"><label for="name">Customer name <span>Required</span></label><input id="name" name="name" type="text" required maxlength="150" autocomplete="name" placeholder="e.g. Alex Johnson"><small>Use a full name or the customer's business name.</small></div>
+        </div>
+        <div class="customer-form-section">
+          <h3>Contact information</h3><p>Add at least one contact detail when available. You can update this record later.</p>
+          <div class="customer-field"><label for="phone">Phone number <span>Optional</span></label><input id="phone" name="phone" type="tel" maxlength="40" autocomplete="tel" inputmode="tel" placeholder="e.g. 08012345678"><small>Include the country code when useful, for example +234.</small></div>
+          <div class="customer-field"><label for="email">Email address <span>Optional</span></label><input id="email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="e.g. alex@example.com"><small>We'll use this address for quick email access from the customer profile.</small></div>
+        </div>
+        <div class="customer-form-actions"><button id="saveCustomerBtn" type="submit">Save Customer</button><button type="button" class="secondary" onclick="showPage('customers',document.querySelectorAll('nav button')[1])">Cancel</button></div>
+      </form>
+      <div id="customerMessage" class="notice" style="display:none" role="status" aria-live="polite"></div>
+    </div>
   </div>
 </section>
 <section id="followups" class="page">
@@ -1093,7 +1122,7 @@ customerDetails.addEventListener("submit",async event=>{
 });
 document.getElementById("customerForm").addEventListener("submit",async function(event){
  event.preventDefault();const message=document.getElementById("customerMessage"),button=document.getElementById("saveCustomerBtn");clearMessage(message);if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please sign out and log in again.","error");return}button.disabled=true;button.textContent="Saving...";
- try{const newCustomer={business_id:currentBusiness.id,name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim()||null,email:document.getElementById("email").value.trim()||null};const {error}=await veloSupabase.from("customers").insert(newCustomer);if(error)throw error;this.reset();selectedCustomerId=null;editingCustomer=false;await loadCustomers();clearMessage(message);showPage("customers",document.querySelectorAll("nav button")[1])}catch(error){showMessage(message,error.message||"Could not save this customer.","error")}finally{button.disabled=false;button.textContent="Save Customer"}
+ try{const name=document.getElementById("name").value.trim(),phone=document.getElementById("phone").value.trim(),email=document.getElementById("email").value.trim();if(!name){showMessage(message,"Please enter the customer's name.","error");document.getElementById("name").focus();return}const normalizedPhone=phone.replace(/[^0-9+]/g,"").toLowerCase(),normalizedEmail=email.toLowerCase();const duplicate=customers.find(c=>(normalizedPhone&&String(c.phone||"").replace(/[^0-9+]/g,"").toLowerCase()===normalizedPhone)||(normalizedEmail&&String(c.email||"").trim().toLowerCase()===normalizedEmail));if(duplicate){const match=normalizedEmail&&String(duplicate.email||"").trim().toLowerCase()===normalizedEmail?"email address":"phone number";showMessage(message,"A customer record already uses this "+match+" ("+duplicate.name+"). Check the existing record before adding another.","error");return}const newCustomer={business_id:currentBusiness.id,name,phone:phone||null,email:email||null};const {error}=await veloSupabase.from("customers").insert(newCustomer);if(error)throw error;this.reset();selectedCustomerId=null;editingCustomer=false;await loadCustomers();clearMessage(message);showPage("customers",document.querySelectorAll("nav button")[1])}catch(error){showMessage(message,error.message||"Could not save this customer.","error")}finally{button.disabled=false;button.textContent="Save Customer"}
 });
 document.getElementById("interactionList").addEventListener("click",async event=>{
   const button=event.target.closest("[data-interaction-action]");if(!button)return;
