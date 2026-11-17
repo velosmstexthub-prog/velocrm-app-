@@ -532,6 +532,21 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   }
 }
 
+
+/* Branded customer picker for the Interactions form */
+#interactions .interaction-customer-wrap,#followups .interaction-customer-wrap{position:relative;width:100%;min-width:0}
+#interactions .interaction-customer-native,#followups .interaction-customer-native{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;background:transparent!important;pointer-events:none!important}
+#interactions .interaction-customer-trigger,#followups .interaction-customer-trigger{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:48px;margin:0;padding:12px 15px;border:1px solid #414141;border-radius:9px;background:linear-gradient(145deg,#191919,#111);color:#ededed;text-align:left;font:inherit;font-size:14px;font-weight:600;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease}
+#interactions .interaction-customer-trigger:hover,#interactions .interaction-customer-trigger[aria-expanded="true"],#followups .interaction-customer-trigger:hover,#followups .interaction-customer-trigger[aria-expanded="true"]{border-color:#888;background:linear-gradient(145deg,#222,#151515)}
+#interactions .interaction-customer-trigger:focus-visible,#followups .interaction-customer-trigger:focus-visible{outline:2px solid #c8c8c8;outline-offset:3px;box-shadow:0 0 0 3px rgba(192,192,192,.09)}
+#interactions .interaction-customer-chevron,#followups .interaction-customer-chevron{flex:0 0 auto;width:9px;height:9px;margin:0 3px 4px 0;border-right:2px solid #bdbdbd;border-bottom:2px solid #bdbdbd;transform:rotate(45deg);transition:transform .18s ease,margin .18s ease}
+#interactions .interaction-customer-trigger[aria-expanded="true"] .interaction-customer-chevron,#followups .interaction-customer-trigger[aria-expanded="true"] .interaction-customer-chevron{margin-top:7px;margin-bottom:0;transform:rotate(225deg)}
+#interactions .interaction-customer-menu[hidden],#followups .interaction-customer-menu[hidden]{display:none!important}
+#interactions .interaction-customer-menu,#followups .interaction-customer-menu{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:1000;display:grid;gap:4px;max-height:240px;overflow-y:auto;padding:7px;border:1px solid #484848;border-radius:12px;background:linear-gradient(145deg,#252525,#171717);box-shadow:0 16px 38px rgba(0,0,0,.58)}
+#interactions .interaction-customer-option,#followups .interaction-customer-option{display:flex;align-items:center;min-height:46px;padding:11px 13px;border:1px solid transparent;border-radius:8px;color:#dedede;font-size:14px;font-weight:500;line-height:1.35;cursor:pointer;user-select:none}
+#interactions .interaction-customer-option:hover,#interactions .interaction-customer-option:focus-visible,#followups .interaction-customer-option:hover,#followups .interaction-customer-option:focus-visible{outline:none;border-color:#555;background:#303030;color:#fff}
+#interactions .interaction-customer-option.is-selected,#followups .interaction-customer-option.is-selected{justify-content:space-between;border-color:#d0d0d0;background:#303030;color:#fff}
+
 </style>
 </head>
 <body>
@@ -639,7 +654,14 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="panel">
     <h2>Schedule a Follow-up</h2><p class="empty">Create a reminder linked to one of your saved customers.</p>
     <form id="followupForm" class="form-box">
-      <label for="followupCustomer">Choose customer</label><select id="followupCustomer" required><option value="">Select a customer</option></select>
+      <label for="followupCustomer">Choose customer</label>
+      <div class="interaction-customer-wrap" id="followupCustomerWrap">
+        <select id="followupCustomer" class="interaction-customer-native" required><option value="">Select a customer</option></select>
+        <button type="button" id="followupCustomerTrigger" class="interaction-customer-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="followupCustomerMenu">
+          <span id="followupCustomerLabel">Select a customer</span><span class="interaction-customer-chevron" aria-hidden="true"></span>
+        </button>
+        <div id="followupCustomerMenu" class="interaction-customer-menu" role="listbox" aria-label="Choose a customer" aria-labelledby="followupCustomerTrigger" hidden></div>
+      </div>
       <label for="followupNote">What do you need to follow up about?</label><textarea id="followupNote" required maxlength="1000" placeholder="e.g. Call about the next order"></textarea>
       <label for="followupDue">Reminder date and time</label><input id="followupDue" type="datetime-local" required>
       <button id="saveFollowupBtn" type="submit">Save Follow-up</button>
@@ -654,7 +676,14 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="panel">
     <h2>Record an Interaction</h2><p class="empty">Save a note about an interaction with one of your customers.</p>
     <form id="interactionForm" class="form-box">
-      <label for="interactionCustomer">Choose customer</label><select id="interactionCustomer" required><option value="">Select a customer</option></select>
+      <label for="interactionCustomer">Choose customer</label>
+      <div class="interaction-customer-wrap" id="interactionCustomerWrap">
+        <select id="interactionCustomer" class="interaction-customer-native" required><option value="">Select a customer</option></select>
+        <button type="button" id="interactionCustomerTrigger" class="interaction-customer-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="interactionCustomerMenu">
+          <span id="interactionCustomerLabel">Select a customer</span><span class="interaction-customer-chevron" aria-hidden="true"></span>
+        </button>
+        <div id="interactionCustomerMenu" class="interaction-customer-menu" role="listbox" aria-label="Choose a customer" aria-labelledby="interactionCustomerTrigger" hidden></div>
+      </div>
       <label for="interactionNote">What happened?</label><textarea id="interactionNote" required maxlength="2000" placeholder="e.g. Called customer about their next order. Customer will confirm tomorrow."></textarea>
       <button id="saveInteractionBtn" type="submit">Save Interaction</button>
     </form>
@@ -709,12 +738,27 @@ async function openWorkspace(user){
 async function loadCustomers(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("customers").select("id,business_id,name,phone,email,created_at").eq("business_id",currentBusiness.id).order("created_at",{ascending:false});if(error)throw error;customers=data||[];if(selectedCustomerId&&!customers.some(c=>c.id===selectedCustomerId)){selectedCustomerId=null;editingCustomer=false}renderCustomers()}
 async function loadFollowUps(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("follow_ups").select("id,customer_id,note,due_at,status,customers(name)").order("due_at",{ascending:true});if(error)throw error;followUps=data||[];renderFollowUps();renderCustomerDetails()}
 async function loadInteractions(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("interactions").select("id,customer_id,note,created_at,customers(name)").order("created_at",{ascending:false});if(error)throw error;interactions=data||[];renderInteractions();renderCustomerDetails()}
+function syncInteractionCustomerPicker(){
+  const select=document.getElementById("interactionCustomer"),label=document.getElementById("interactionCustomerLabel"),menu=document.getElementById("interactionCustomerMenu");
+  if(!select||!label||!menu)return;
+  const selected=select.options[select.selectedIndex];label.textContent=selected?.textContent||"Select a customer";
+  menu.querySelectorAll(".interaction-customer-option").forEach(option=>{const active=option.dataset.customerId===select.value;option.classList.toggle("is-selected",active);option.setAttribute("aria-selected",String(active));option.tabIndex=active?0:-1});
+}
+function closeInteractionCustomerMenu(returnFocus=false){
+  const menu=document.getElementById("interactionCustomerMenu"),trigger=document.getElementById("interactionCustomerTrigger");if(!menu||!trigger)return;menu.hidden=true;trigger.setAttribute("aria-expanded","false");if(returnFocus)trigger.focus();
+}
+function openInteractionCustomerMenu(){
+  const menu=document.getElementById("interactionCustomerMenu"),trigger=document.getElementById("interactionCustomerTrigger"),select=document.getElementById("interactionCustomer");if(!menu||!trigger||!select||trigger.disabled)return;menu.hidden=false;trigger.setAttribute("aria-expanded","true");(menu.querySelector('[data-customer-id="'+select.value+'"]')||menu.querySelector(".interaction-customer-option"))?.focus();
+}
 function renderInteractionCustomerOptions(){
   const select=document.getElementById("interactionCustomer");if(!select)return;const previousValue=select.value;
   select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");
   if(customers.some(c=>c.id===previousValue))select.value=previousValue;
   if(!customers.length)select.innerHTML='<option value="">Add a customer first</option>';
-  document.getElementById("saveInteractionBtn").disabled=customers.length===0;
+  const menu=document.getElementById("interactionCustomerMenu");
+  if(menu)menu.innerHTML=customers.length?customers.map(c=>`<div class="interaction-customer-option" role="option" data-customer-id="${escapeHTML(c.id)}" aria-selected="false" tabindex="-1">${escapeHTML(c.name)}</div>`).join(""):'<div class="interaction-customer-option" aria-disabled="true">Add a customer first</div>';
+  const trigger=document.getElementById("interactionCustomerTrigger");if(trigger)trigger.disabled=customers.length===0;
+  document.getElementById("saveInteractionBtn").disabled=customers.length===0;syncInteractionCustomerPicker();closeInteractionCustomerMenu();
 }
 function renderInteractions(){
   document.getElementById("interactionCount").textContent=interactions.length;
@@ -821,6 +865,28 @@ customerFilterSelect.addEventListener("change",()=>{
  renderCustomers();
 });
 syncCustomerFilterUI();
+const interactionCustomerSelect=document.getElementById("interactionCustomer");
+const interactionCustomerTrigger=document.getElementById("interactionCustomerTrigger");
+const interactionCustomerMenu=document.getElementById("interactionCustomerMenu");
+const interactionCustomerWrap=document.getElementById("interactionCustomerWrap");
+interactionCustomerTrigger.addEventListener("click",()=>{if(interactionCustomerTrigger.getAttribute("aria-expanded")==="true")closeInteractionCustomerMenu();else openInteractionCustomerMenu()});
+interactionCustomerTrigger.addEventListener("keydown",event=>{if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();openInteractionCustomerMenu();if(event.key==="ArrowUp")interactionCustomerMenu.querySelector(".interaction-customer-option:last-child")?.focus()}});
+interactionCustomerMenu.addEventListener("click",event=>{const option=event.target.closest(".interaction-customer-option[data-customer-id]");if(!option)return;interactionCustomerSelect.value=option.dataset.customerId;interactionCustomerSelect.dispatchEvent(new Event("change",{bubbles:true}));closeInteractionCustomerMenu(true)});
+interactionCustomerMenu.addEventListener("keydown",event=>{const options=Array.from(interactionCustomerMenu.querySelectorAll(".interaction-customer-option[data-customer-id]")),index=options.indexOf(document.activeElement);if(event.key==="Escape"){event.preventDefault();closeInteractionCustomerMenu(true)}else if(["ArrowDown","ArrowUp","Home","End"].includes(event.key)){event.preventDefault();let next=index;if(event.key==="ArrowDown")next=(index+1)%options.length;if(event.key==="ArrowUp")next=(index-1+options.length)%options.length;if(event.key==="Home")next=0;if(event.key==="End")next=options.length-1;options[next]?.focus()}else if(event.key==="Enter"||event.key===" "){event.preventDefault();document.activeElement?.click()}});
+document.addEventListener("click",event=>{if(interactionCustomerWrap&&!interactionCustomerWrap.contains(event.target))closeInteractionCustomerMenu()});
+interactionCustomerWrap.addEventListener("focusout",event=>{if(!interactionCustomerWrap.contains(event.relatedTarget))closeInteractionCustomerMenu()});
+interactionCustomerSelect.addEventListener("change",syncInteractionCustomerPicker);
+const followupCustomerSelect=document.getElementById("followupCustomer");
+const followupCustomerTrigger=document.getElementById("followupCustomerTrigger");
+const followupCustomerMenu=document.getElementById("followupCustomerMenu");
+const followupCustomerWrap=document.getElementById("followupCustomerWrap");
+followupCustomerTrigger.addEventListener("click",()=>{if(followupCustomerTrigger.getAttribute("aria-expanded")==="true")closeFollowupCustomerMenu();else openFollowupCustomerMenu()});
+followupCustomerTrigger.addEventListener("keydown",event=>{if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();openFollowupCustomerMenu();if(event.key==="ArrowUp")followupCustomerMenu.querySelector(".interaction-customer-option:last-child")?.focus()}});
+followupCustomerMenu.addEventListener("click",event=>{const option=event.target.closest(".interaction-customer-option[data-customer-id]");if(!option)return;followupCustomerSelect.value=option.dataset.customerId;followupCustomerSelect.dispatchEvent(new Event("change",{bubbles:true}));closeFollowupCustomerMenu(true)});
+followupCustomerMenu.addEventListener("keydown",event=>{const options=Array.from(followupCustomerMenu.querySelectorAll(".interaction-customer-option[data-customer-id]")),index=options.indexOf(document.activeElement);if(event.key==="Escape"){event.preventDefault();closeFollowupCustomerMenu(true)}else if(["ArrowDown","ArrowUp","Home","End"].includes(event.key)){event.preventDefault();let next=index;if(event.key==="ArrowDown")next=(index+1)%options.length;if(event.key==="ArrowUp")next=(index-1+options.length)%options.length;if(event.key==="Home")next=0;if(event.key==="End")next=options.length-1;options[next]?.focus()}else if(event.key==="Enter"||event.key===" "){event.preventDefault();document.activeElement?.click()}});
+document.addEventListener("click",event=>{if(followupCustomerWrap&&!followupCustomerWrap.contains(event.target))closeFollowupCustomerMenu()});
+followupCustomerWrap.addEventListener("focusout",event=>{if(!followupCustomerWrap.contains(event.relatedTarget))closeFollowupCustomerMenu()});
+followupCustomerSelect.addEventListener("change",syncFollowupCustomerPicker);
 function csvCell(value){
  let text=String(value??"");
  if(/^[\s]*[=+@\-]/.test(text))text="'"+text;
@@ -903,8 +969,22 @@ document.getElementById("customerImportPreview").addEventListener("click",async 
   showMessage(document.getElementById("customerActionMessage"),records.length+" customer record(s) imported successfully. Existing duplicates and rows without a name were skipped.","success");
  }catch(error){button.disabled=false;button.textContent="Try Import Again";const status=document.getElementById("customerImportStatus");status.style.display="block";status.className="notice error";status.textContent=error.message||"Could not import these customers."}
 });
+function syncFollowupCustomerPicker(){
+ const select=document.getElementById("followupCustomer"),label=document.getElementById("followupCustomerLabel"),menu=document.getElementById("followupCustomerMenu");
+ if(!select||!label||!menu)return;
+ const selected=select.options[select.selectedIndex];label.textContent=selected?.textContent||"Select a customer";
+ menu.querySelectorAll(".interaction-customer-option").forEach(option=>{const active=option.dataset.customerId===select.value;option.classList.toggle("is-selected",active);option.setAttribute("aria-selected",String(active));option.tabIndex=active?0:-1});
+}
+function closeFollowupCustomerMenu(returnFocus=false){
+ const menu=document.getElementById("followupCustomerMenu"),trigger=document.getElementById("followupCustomerTrigger");if(!menu||!trigger)return;menu.hidden=true;trigger.setAttribute("aria-expanded","false");if(returnFocus)trigger.focus();
+}
+function openFollowupCustomerMenu(){
+ const menu=document.getElementById("followupCustomerMenu"),trigger=document.getElementById("followupCustomerTrigger"),select=document.getElementById("followupCustomer");if(!menu||!trigger||!select||trigger.disabled)return;menu.hidden=false;trigger.setAttribute("aria-expanded","true");(menu.querySelector('[data-customer-id="'+select.value+'"]')||menu.querySelector(".interaction-customer-option"))?.focus();
+}
 function renderFollowupCustomerOptions(){
- const select=document.getElementById("followupCustomer"),previousValue=select.value;select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");if(customers.some(c=>c.id===previousValue))select.value=previousValue;const noCustomers=customers.length===0;document.getElementById("saveFollowupBtn").disabled=noCustomers;if(noCustomers)select.innerHTML='<option value="">Add a customer first</option>'
+ const select=document.getElementById("followupCustomer"),previousValue=select.value;select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");if(customers.some(c=>c.id===previousValue))select.value=previousValue;const noCustomers=customers.length===0;if(noCustomers)select.innerHTML='<option value="">Add a customer first</option>';
+ const menu=document.getElementById("followupCustomerMenu");if(menu)menu.innerHTML=customers.length?customers.map(c=>`<div class="interaction-customer-option" role="option" data-customer-id="${escapeHTML(c.id)}" aria-selected="false" tabindex="-1">${escapeHTML(c.name)}</div>`).join(""):'<div class="interaction-customer-option" aria-disabled="true">Add a customer first</div>';
+ const trigger=document.getElementById("followupCustomerTrigger");if(trigger)trigger.disabled=noCustomers;document.getElementById("saveFollowupBtn").disabled=noCustomers;syncFollowupCustomerPicker();closeFollowupCustomerMenu();
 }
 function renderFollowUps(){
  const now=Date.now();
