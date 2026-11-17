@@ -21,8 +21,7 @@ h1{font-size:28px;margin:8px 0}.welcome p{color:#999;font-size:14px}
 .section-heading h2{font-size:19px}
 button{background:#c0c0c0;color:#080808;border:none;padding:11px 15px;border-radius:4px;font-weight:bold;cursor:pointer}
 button:disabled{opacity:.55;cursor:not-allowed}
-.secondary{background:#333;color:#fff}
-.danger{background:#713737;color:#fff}
+.secondary{background:#333;color:#fff}.danger{background:#713737;color:#fff}
 .customer{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 0;border-bottom:1px solid #292929}
 .customer:last-child{border-bottom:none}
 .customer p{color:#999;font-size:12px;overflow-wrap:anywhere}
@@ -33,7 +32,10 @@ nav{display:flex;gap:10px;overflow-x:auto;padding:15px 20px;border-bottom:1px so
 nav button{background:#222;color:#ccc;white-space:nowrap}
 nav button.active{background:#c0c0c0;color:#080808}
 .page{display:none}.page.active{display:block}
-input{width:100%;background:#202020;color:white;border:1px solid #444;padding:12px;margin:8px 0 15px;border-radius:4px}
+input,select,textarea{width:100%;background:#202020;color:white;border:1px solid #444;padding:12px;margin:8px 0 15px;border-radius:4px;font:inherit}
+select option{background:#202020;color:#fff}
+textarea{min-height:90px;resize:vertical}
+input[type="datetime-local"]{color-scheme:dark}
 label{color:#bbb;font-size:13px}
 .form-box{max-width:450px;margin-top:20px}
 footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;font-size:12px}
@@ -43,8 +45,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .auth-switch button{flex:1;background:#292929;color:#ddd}
 .auth-switch button.active{background:#c0c0c0;color:#080808}
 .notice{font-size:13px;padding:12px;border:1px solid #444;border-radius:5px;margin:12px 0;color:#ddd;overflow-wrap:anywhere}
-.error{border-color:#8a4444;color:#ffcaca}
-.success{border-color:#547b5c;color:#c8f1ce}
+.error{border-color:#8a4444;color:#ffcaca}.success{border-color:#547b5c;color:#c8f1ce}
 #appShell{display:none}
 .empty{color:#999;font-size:14px;padding:10px 0}
 .detail-panel{margin-top:16px}
@@ -52,44 +53,36 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .detail-line:last-of-type{border-bottom:none}
 .detail-label{display:block;color:#999;font-size:11px;text-transform:uppercase;letter-spacing:1px}
 .detail-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.followup{padding:15px 0;border-bottom:1px solid #292929}
+.followup:last-child{border-bottom:none}
+.followup p{color:#aaa;font-size:13px;overflow-wrap:anywhere;margin:5px 0}
+.followup-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.status{display:inline-block;font-size:11px;padding:3px 8px;border:1px solid #555;border-radius:20px;color:#ddd;margin-left:6px}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}main{padding-top:40px}}
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <div class="logo">VELO<span>CRM</span></div>
-    <div class="brand">BY VELOAXIS</div>
-  </div>
+  <div><div class="logo">VELO<span>CRM</span></div><div class="brand">BY VELOAXIS</div></div>
   <div style="display:flex;align-items:center;gap:12px">
     <span class="tag">SECURE WORKSPACE</span>
     <button id="signOutBtn" class="secondary" style="display:none;padding:8px 10px">Sign out</button>
   </div>
 </header>
-
 <section id="authScreen" class="auth-wrap">
   <div class="logo">VELO<span>CRM</span></div>
   <h1 id="authTitle">Welcome back</h1>
   <p id="authDescription">Sign in to manage your business customers.</p>
-  <div class="auth-switch">
-    <button type="button" id="showLogin" class="active">Log in</button>
-    <button type="button" id="showSignup">Create account</button>
-  </div>
+  <div class="auth-switch"><button type="button" id="showLogin" class="active">Log in</button><button type="button" id="showSignup">Create account</button></div>
   <form id="authForm">
-    <div id="businessNameField" style="display:none">
-      <label for="businessName">Business name</label>
-      <input id="businessName" type="text" autocomplete="organization" placeholder="e.g. Kachi Ventures">
-    </div>
-    <label for="authEmail">Email address</label>
-    <input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
-    <label for="authPassword">Password</label>
-    <input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters">
+    <div id="businessNameField" style="display:none"><label for="businessName">Business name</label><input id="businessName" type="text" autocomplete="organization" placeholder="e.g. Kachi Ventures"></div>
+    <label for="authEmail">Email address</label><input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+    <label for="authPassword">Password</label><input id="authPassword" type="password" autocomplete="current-password" minlength="6" required placeholder="At least 6 characters">
     <button id="authSubmit" type="submit" style="width:100%">Log in</button>
   </form>
   <div id="authMessage" class="notice" style="display:none" role="status"></div>
   <p style="font-size:12px;margin-top:16px">Your business information is private to your signed-in account, subject to the database access policies.</p>
 </section>
-
 <div id="appShell">
 <nav>
   <button class="active" onclick="showPage('dashboard',this)">Dashboard</button>
@@ -100,23 +93,18 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 </nav>
 <main>
 <section id="dashboard" class="page active">
-  <div class="welcome">
-    <small>BUSINESS OVERVIEW</small>
-    <h1>Welcome to VeloCRM.</h1>
-    <p>Organise your customers. Build stronger relationships. Grow smarter.</p>
-  </div>
+  <div class="welcome"><small>BUSINESS OVERVIEW</small><h1>Welcome to VeloCRM.</h1><p>Organise your customers. Build stronger relationships. Grow smarter.</p></div>
   <div class="stats">
     <div class="stat"><small>Total Customers</small><h2 id="customerCount">0</h2></div>
-    <div class="stat"><small>Follow-ups</small><h2>—</h2></div>
+    <div class="stat"><small>Pending Follow-ups</small><h2 id="followupCount">0</h2></div>
     <div class="stat"><small>Interactions</small><h2>—</h2></div>
     <div class="stat"><small>Business Growth</small><h2>—</h2></div>
   </div>
   <div class="section-heading"><h2>Recent Customers</h2><button onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button></div>
   <div class="panel" id="recentCustomers"><p class="empty">Your customer records will appear here.</p></div>
   <div class="section-heading"><h2>Upcoming Follow-ups</h2></div>
-  <div class="panel"><p class="empty">Follow-up scheduling will be connected in a later development step.</p></div>
+  <div class="panel" id="upcomingFollowups"><p class="empty">Your upcoming reminders will appear here.</p></div>
 </section>
-
 <section id="customers" class="page">
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Your Customers</h1><p>Keep your customer information organised in one place.</p></div>
   <div class="section-heading"><h2>Customer Records</h2><button onclick="showPage('addCustomer',null)">+ Add Customer</button></div>
@@ -124,7 +112,6 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div id="customerDetails" class="panel detail-panel" style="display:none"></div>
   <div id="customerActionMessage" class="notice" style="display:none" role="status"></div>
 </section>
-
 <section id="addCustomer" class="page">
   <div class="welcome"><small>CUSTOMER MANAGEMENT</small><h1>Add a Customer</h1><p>Save a customer record to your business database.</p></div>
   <div class="form-box">
@@ -138,383 +125,107 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
     <div id="customerMessage" class="notice" style="display:none" role="status"></div>
   </div>
 </section>
-
 <section id="followups" class="page">
   <div class="welcome"><small>CUSTOMER RELATIONSHIPS</small><h1>Follow-ups</h1><p>Stay connected with the customers who matter to your business.</p></div>
-  <div class="panel"><p class="empty">Follow-up reminders are planned for a later development step. No demo reminders are being shown as real records.</p></div>
+  <div class="panel">
+    <h2>Schedule a Follow-up</h2><p class="empty">Create a reminder linked to one of your saved customers.</p>
+    <form id="followupForm" class="form-box">
+      <label for="followupCustomer">Choose customer</label><select id="followupCustomer" required><option value="">Select a customer</option></select>
+      <label for="followupNote">What do you need to follow up about?</label><textarea id="followupNote" required maxlength="1000" placeholder="e.g. Call about the next order"></textarea>
+      <label for="followupDue">Reminder date and time</label><input id="followupDue" type="datetime-local" required>
+      <button id="saveFollowupBtn" type="submit">Save Follow-up</button>
+    </form>
+    <div id="followupMessage" class="notice" style="display:none" role="status"></div>
+  </div>
+  <div class="section-heading"><h2>Your Follow-up Reminders</h2></div>
+  <div class="panel" id="followupList"><p class="empty">Loading follow-ups...</p></div>
 </section>
-
 <section id="about" class="page">
   <div class="welcome"><small>POWERED BY VELOAXIS</small><h1>About VeloCRM</h1><p>VeloCRM is being developed to help businesses manage customers, track interactions and organise follow-ups.</p></div>
   <div class="panel"><h2>Our mission</h2><p style="color:#aaa;margin-top:10px">Make customer management simpler, smarter and more accessible for businesses.</p><p class="tag" style="margin-top:20px">FIRST PRODUCT IN THE VELOAXIS ECOSYSTEM</p></div>
 </section>
 </main>
 </div>
-
 <footer>VELOCRM © 2026 | A VELOAXIS PRODUCT</footer>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
 const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
 const veloSupabase = window.supabase.createClient(VELO_SUPABASE_URL, VELO_SUPABASE_KEY);
-
-let authMode = "login";
-let currentUser = null;
-let currentBusiness = null;
-let customers = [];
-let selectedCustomerId = null;
-let editingCustomer = false;
-
-const authScreen = document.getElementById("authScreen");
-const appShell = document.getElementById("appShell");
-const authMessage = document.getElementById("authMessage");
-const customerDetails = document.getElementById("customerDetails");
-const customerActionMessage = document.getElementById("customerActionMessage");
-
-function showMessage(element, message, type) {
-  element.textContent = message;
-  element.className = "notice " + (type || "");
-  element.style.display = "block";
-}
-function clearMessage(element) {
-  element.textContent = "";
-  element.style.display = "none";
-}
-function setAuthMode(mode) {
-  authMode = mode;
-  const signup = mode === "signup";
-  document.getElementById("showLogin").classList.toggle("active", !signup);
-  document.getElementById("showSignup").classList.toggle("active", signup);
-  document.getElementById("businessNameField").style.display = signup ? "block" : "none";
-  document.getElementById("businessName").required = signup;
-  document.getElementById("authTitle").textContent = signup ? "Create your VeloCRM account" : "Welcome back";
-  document.getElementById("authDescription").textContent = signup ? "Set up your account to start managing customers." : "Sign in to manage your business customers.";
-  document.getElementById("authSubmit").textContent = signup ? "Create account" : "Log in";
-  document.getElementById("authPassword").autocomplete = signup ? "new-password" : "current-password";
-  clearMessage(authMessage);
-}
-document.getElementById("showLogin").addEventListener("click", () => setAuthMode("login"));
-document.getElementById("showSignup").addEventListener("click", () => setAuthMode("signup"));
-
-document.getElementById("authForm").addEventListener("submit", async function(event) {
-  event.preventDefault();
-  clearMessage(authMessage);
-  const button = document.getElementById("authSubmit");
-  const email = document.getElementById("authEmail").value.trim();
-  const password = document.getElementById("authPassword").value;
-  button.disabled = true;
-  button.textContent = "Please wait...";
-  try {
-    if (authMode === "signup") {
-      const businessName = document.getElementById("businessName").value.trim();
-      if (!businessName) throw new Error("Please enter your business name.");
-      const { data, error } = await veloSupabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin + window.location.pathname,
-          data: { business_name: businessName }
-        }
-      });
-      if (error) throw error;
-      if (data.session) {
-        showMessage(authMessage, "Your account has been created. Opening your workspace...", "success");
-        await openWorkspace(data.user);
-      } else {
-        showMessage(authMessage, "Account created. Please check your email and confirm your address. Then return here and log in.", "success");
-      }
-    } else {
-      const { data, error } = await veloSupabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      await openWorkspace(data.user);
-    }
-  } catch (error) {
-    showMessage(authMessage, error.message || "Something went wrong. Please try again.", "error");
-  } finally {
-    button.disabled = false;
-    button.textContent = authMode === "signup" ? "Create account" : "Log in";
-  }
+let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],selectedCustomerId=null,editingCustomer=false;
+const authScreen=document.getElementById("authScreen"),appShell=document.getElementById("appShell"),authMessage=document.getElementById("authMessage"),customerDetails=document.getElementById("customerDetails"),customerActionMessage=document.getElementById("customerActionMessage");
+function showMessage(element,message,type){element.textContent=message;element.className="notice "+(type||"");element.style.display="block"}
+function clearMessage(element){element.textContent="";element.style.display="none"}
+function setAuthMode(mode){authMode=mode;const signup=mode==="signup";document.getElementById("showLogin").classList.toggle("active",!signup);document.getElementById("showSignup").classList.toggle("active",signup);document.getElementById("businessNameField").style.display=signup?"block":"none";document.getElementById("businessName").required=signup;document.getElementById("authTitle").textContent=signup?"Create your VeloCRM account":"Welcome back";document.getElementById("authDescription").textContent=signup?"Set up your account to start managing customers.":"Sign in to manage your business customers.";document.getElementById("authSubmit").textContent=signup?"Create account":"Log in";document.getElementById("authPassword").autocomplete=signup?"new-password":"current-password";clearMessage(authMessage)}
+document.getElementById("showLogin").addEventListener("click",()=>setAuthMode("login"));
+document.getElementById("showSignup").addEventListener("click",()=>setAuthMode("signup"));
+document.getElementById("authForm").addEventListener("submit",async function(event){
+ event.preventDefault();clearMessage(authMessage);const button=document.getElementById("authSubmit"),email=document.getElementById("authEmail").value.trim(),password=document.getElementById("authPassword").value;button.disabled=true;button.textContent="Please wait...";
+ try{if(authMode==="signup"){const businessName=document.getElementById("businessName").value.trim();if(!businessName)throw new Error("Please enter your business name.");const {data,error}=await veloSupabase.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+window.location.pathname,data:{business_name:businessName}}});if(error)throw error;if(data.session){showMessage(authMessage,"Your account has been created. Opening your workspace...","success");await openWorkspace(data.user)}else showMessage(authMessage,"Account created. Please check your email and confirm your address. Then return here and log in.","success")}else{const {data,error}=await veloSupabase.auth.signInWithPassword({email,password});if(error)throw error;await openWorkspace(data.user)}}catch(error){showMessage(authMessage,error.message||"Something went wrong. Please try again.","error")}finally{button.disabled=false;button.textContent=authMode==="signup"?"Create account":"Log in"}
 });
-
-async function openWorkspace(user) {
-  currentUser = user;
-  clearMessage(authMessage);
-  authScreen.style.display = "none";
-  appShell.style.display = "block";
-  document.getElementById("signOutBtn").style.display = "inline-block";
-
-  try {
-    const { data: businesses, error: readError } = await veloSupabase
-      .from("businesses")
-      .select("id,name,owner_id")
-      .eq("owner_id", user.id)
-      .limit(1);
-    if (readError) throw readError;
-
-    if (businesses && businesses.length) {
-      currentBusiness = businesses[0];
-    } else {
-      const businessName = user.user_metadata?.business_name || "My Business";
-      const { data: createdBusiness, error: createError } = await veloSupabase
-        .from("businesses")
-        .insert({ name: businessName, owner_id: user.id })
-        .select("id,name,owner_id")
-        .single();
-      if (createError) throw createError;
-      currentBusiness = createdBusiness;
-    }
-    await loadCustomers();
-  } catch (error) {
-    document.getElementById("customerList").innerHTML = "";
-    showPage("customers", document.querySelectorAll("nav button")[1]);
-    const message = document.createElement("p");
-    message.className = "notice error";
-    message.textContent = "We signed you in, but could not load your business data: " + (error.message || "Database access error") + ". Please tell your VeloAxis setup assistant this exact message.";
-    document.getElementById("customerList").appendChild(message);
-  }
+async function openWorkspace(user){
+ currentUser=user;clearMessage(authMessage);authScreen.style.display="none";appShell.style.display="block";document.getElementById("signOutBtn").style.display="inline-block";
+ try{const {data:businesses,error:readError}=await veloSupabase.from("businesses").select("id,name,owner_id").eq("owner_id",user.id).limit(1);if(readError)throw readError;if(businesses&&businesses.length)currentBusiness=businesses[0];else{const businessName=user.user_metadata?.business_name||"My Business";const {data:createdBusiness,error:createError}=await veloSupabase.from("businesses").insert({name:businessName,owner_id:user.id}).select("id,name,owner_id").single();if(createError)throw createError;currentBusiness=createdBusiness}await loadCustomers();await loadFollowUps()}catch(error){document.getElementById("customerList").innerHTML="";showPage("customers",document.querySelectorAll("nav button")[1]);const message=document.createElement("p");message.className="notice error";message.textContent="We signed you in, but could not load your business data: "+(error.message||"Database access error")+". Please tell your VeloAxis setup assistant this exact message.";document.getElementById("customerList").appendChild(message)}
 }
-
-async function loadCustomers() {
-  if (!currentBusiness) return;
-  const { data, error } = await veloSupabase
-    .from("customers")
-    .select("id,business_id,name,phone,email,created_at")
-    .eq("business_id", currentBusiness.id)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  customers = data || [];
-  if (selectedCustomerId && !customers.some(c => c.id === selectedCustomerId)) {
-    selectedCustomerId = null;
-    editingCustomer = false;
-  }
-  renderCustomers();
+async function loadCustomers(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("customers").select("id,business_id,name,phone,email,created_at").eq("business_id",currentBusiness.id).order("created_at",{ascending:false});if(error)throw error;customers=data||[];if(selectedCustomerId&&!customers.some(c=>c.id===selectedCustomerId)){selectedCustomerId=null;editingCustomer=false}renderCustomers()}
+async function loadFollowUps(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("follow_ups").select("id,customer_id,note,due_at,status,customers(name)").order("due_at",{ascending:true});if(error)throw error;followUps=data||[];renderFollowUps()}
+function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
+function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?"Date unavailable":date.toLocaleString()}
+function renderCustomers(){
+ const customerHTML=customers.length?customers.map(c=>`<div class="customer"><button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}"><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")} · ${escapeHTML(c.email||"No email added")}</p></button><span class="tag">View details</span></div>`).join(""):'<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
+ document.getElementById("customerList").innerHTML=customerHTML;document.getElementById("recentCustomers").innerHTML=customers.length?customers.slice(0,3).map(c=>`<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")}</p></div><span class="tag">Customer</span></div>`).join(""):'<p class="empty">Your customer records will appear here.</p>';document.getElementById("customerCount").textContent=customers.length;renderCustomerDetails();renderFollowupCustomerOptions()
 }
-
-function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[char]);
+function renderFollowupCustomerOptions(){
+ const select=document.getElementById("followupCustomer"),previousValue=select.value;select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");if(customers.some(c=>c.id===previousValue))select.value=previousValue;const noCustomers=customers.length===0;document.getElementById("saveFollowupBtn").disabled=noCustomers;if(noCustomers)select.innerHTML='<option value="">Add a customer first</option>'
 }
-function renderCustomers() {
-  const customerHTML = customers.length ? customers.map(c => `
-    <div class="customer">
-      <button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}">
-        <strong>${escapeHTML(c.name)}</strong>
-        <p>${escapeHTML(c.phone || "No phone added")} · ${escapeHTML(c.email || "No email added")}</p>
-      </button>
-      <span class="tag">View details</span>
-    </div>`).join("") : '<p class="empty">No customers yet. Select “Add Customer” to create your first record.</p>';
-  document.getElementById("customerList").innerHTML = customerHTML;
-  document.getElementById("recentCustomers").innerHTML = customers.length
-    ? customers.slice(0,3).map(c => `<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone || "No phone added")}</p></div><span class="tag">Customer</span></div>`).join("")
-    : '<p class="empty">Your customer records will appear here.</p>';
-  document.getElementById("customerCount").textContent = customers.length;
-  renderCustomerDetails();
+function renderFollowUps(){
+ const pending=followUps.filter(f=>(f.status||"pending").toLowerCase()!=="completed");document.getElementById("followupCount").textContent=pending.length;const upcoming=pending.slice(0,3);
+ document.getElementById("upcomingFollowups").innerHTML=upcoming.length?upcoming.map(f=>`<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><p>${escapeHTML(f.note)}</p><p>${escapeHTML(formatDate(f.due_at))}</p></div>`).join(""):'<p class="empty">No pending follow-ups yet. Add a reminder in the Follow-ups section.</p>';
+ const list=document.getElementById("followupList");if(!followUps.length){list.innerHTML='<p class="empty">No follow-up reminders yet. Use the form above to create your first reminder.</p>';return}
+ list.innerHTML=followUps.map(f=>{const completed=(f.status||"pending").toLowerCase()==="completed";return `<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><span class="status">${completed?"Completed":"Pending"}</span><p>${escapeHTML(f.note)}</p><p>Due: ${escapeHTML(formatDate(f.due_at))}</p><div class="followup-actions">${completed?"":`<button type="button" data-followup-action="complete" data-id="${escapeHTML(f.id)}">Mark completed</button>`}<button type="button" class="danger" data-followup-action="delete" data-id="${escapeHTML(f.id)}">Delete</button></div></div>`}).join("")
 }
-
-function renderCustomerDetails() {
-  const customer = customers.find(c => c.id === selectedCustomerId);
-  if (!customer) {
-    customerDetails.style.display = "none";
-    customerDetails.innerHTML = "";
-    return;
-  }
-  customerDetails.style.display = "block";
-  if (editingCustomer) {
-    customerDetails.innerHTML = `
-      <h2>Edit Customer</h2>
-      <p class="empty">Update this customer's information, then save your changes.</p>
-      <form id="editCustomerForm">
-        <label for="editName">Customer name</label>
-        <input id="editName" name="name" required maxlength="150" value="${escapeHTML(customer.name)}">
-        <label for="editPhone">Phone number</label>
-        <input id="editPhone" name="phone" type="tel" value="${escapeHTML(customer.phone || "")}">
-        <label for="editEmail">Customer email</label>
-        <input id="editEmail" name="email" type="email" value="${escapeHTML(customer.email || "")}">
-        <div class="detail-actions">
-          <button id="updateCustomerBtn" type="submit">Save Changes</button>
-          <button type="button" class="secondary" data-action="cancel-edit">Cancel</button>
-        </div>
-      </form>`;
-  } else {
-    customerDetails.innerHTML = `
-      <small class="tag">CUSTOMER DETAILS</small>
-      <h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2>
-      <div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone || "Not provided")}</div>
-      <div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email || "Not provided")}</div>
-      <div class="detail-actions">
-        <button type="button" data-action="edit">Edit Customer</button>
-        <button type="button" class="danger" data-action="delete">Delete Customer</button>
-        <button type="button" class="secondary" data-action="close-details">Close</button>
-      </div>`;
-  }
+function renderCustomerDetails(){
+ const customer=customers.find(c=>c.id===selectedCustomerId);if(!customer){customerDetails.style.display="none";customerDetails.innerHTML="";return}customerDetails.style.display="block";
+ if(editingCustomer)customerDetails.innerHTML=`<h2>Edit Customer</h2><p class="empty">Update this customer's information, then save your changes.</p><form id="editCustomerForm"><label for="editName">Customer name</label><input id="editName" name="name" required maxlength="150" value="${escapeHTML(customer.name)}"><label for="editPhone">Phone number</label><input id="editPhone" name="phone" type="tel" value="${escapeHTML(customer.phone||"")}"><label for="editEmail">Customer email</label><input id="editEmail" name="email" type="email" value="${escapeHTML(customer.email||"")}"><div class="detail-actions"><button id="updateCustomerBtn" type="submit">Save Changes</button><button type="button" class="secondary" data-action="cancel-edit">Cancel</button></div></form>`;
+ else customerDetails.innerHTML=`<small class="tag">CUSTOMER DETAILS</small><h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2><div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone||"Not provided")}</div><div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email||"Not provided")}</div><div class="detail-actions"><button type="button" data-action="edit">Edit Customer</button><button type="button" class="danger" data-action="delete">Delete Customer</button><button type="button" class="secondary" data-action="close-details">Close</button></div>`
 }
-
-document.getElementById("customerList").addEventListener("click", event => {
-  const button = event.target.closest("[data-action='view']");
-  if (!button) return;
-  selectedCustomerId = button.dataset.id;
-  editingCustomer = false;
-  clearMessage(customerActionMessage);
-  renderCustomerDetails();
+document.getElementById("customerList").addEventListener("click",event=>{const button=event.target.closest("[data-action='view']");if(!button)return;selectedCustomerId=button.dataset.id;editingCustomer=false;clearMessage(customerActionMessage);renderCustomerDetails()});
+customerDetails.addEventListener("click",async event=>{
+ const button=event.target.closest("[data-action]");if(!button)return;const action=button.dataset.action;
+ if(action==="edit"){editingCustomer=true;renderCustomerDetails()}else if(action==="cancel-edit"){editingCustomer=false;renderCustomerDetails()}else if(action==="close-details"){selectedCustomerId=null;editingCustomer=false;renderCustomerDetails()}else if(action==="delete"){
+ const customer=customers.find(c=>c.id===selectedCustomerId);if(!customer)return;if(!window.confirm("Delete "+customer.name+"? This cannot be undone."))return;button.disabled=true;
+ try{const {error}=await veloSupabase.from("customers").delete().eq("id",customer.id).eq("business_id",currentBusiness.id);if(error)throw error;selectedCustomerId=null;editingCustomer=false;await loadCustomers();await loadFollowUps();showMessage(customerActionMessage,"Customer deleted successfully.","success")}catch(error){showMessage(customerActionMessage,error.message||"Could not delete this customer.","error");button.disabled=false}
+ }});
+customerDetails.addEventListener("submit",async event=>{
+ if(event.target.id!=="editCustomerForm")return;event.preventDefault();const button=document.getElementById("updateCustomerBtn"),customer=customers.find(c=>c.id===selectedCustomerId);if(!customer||!currentBusiness)return;
+ const updatedCustomer={name:document.getElementById("editName").value.trim(),phone:document.getElementById("editPhone").value.trim()||null,email:document.getElementById("editEmail").value.trim()||null};if(!updatedCustomer.name){showMessage(customerActionMessage,"Customer name is required.","error");return}button.disabled=true;button.textContent="Saving...";
+ try{const {data,error}=await veloSupabase.from("customers").update(updatedCustomer).eq("id",customer.id).eq("business_id",currentBusiness.id).select("id,business_id,name,phone,email,created_at").single();if(error)throw error;customers=customers.map(c=>c.id===data.id?data:c);editingCustomer=false;renderCustomers();showMessage(customerActionMessage,"Customer details updated successfully.","success")}catch(error){showMessage(customerActionMessage,error.message||"Could not update this customer.","error");button.disabled=false;button.textContent="Save Changes"}
 });
-
-customerDetails.addEventListener("click", async event => {
-  const button = event.target.closest("[data-action]");
-  if (!button) return;
-  const action = button.dataset.action;
-  if (action === "edit") {
-    editingCustomer = true;
-    renderCustomerDetails();
-  } else if (action === "cancel-edit") {
-    editingCustomer = false;
-    renderCustomerDetails();
-  } else if (action === "close-details") {
-    selectedCustomerId = null;
-    editingCustomer = false;
-    renderCustomerDetails();
-  } else if (action === "delete") {
-    const customer = customers.find(c => c.id === selectedCustomerId);
-    if (!customer) return;
-    if (!window.confirm("Delete " + customer.name + "? This cannot be undone.")) return;
-    button.disabled = true;
-    try {
-      const { error } = await veloSupabase
-        .from("customers")
-        .delete()
-        .eq("id", customer.id)
-        .eq("business_id", currentBusiness.id);
-      if (error) throw error;
-      selectedCustomerId = null;
-      editingCustomer = false;
-      await loadCustomers();
-      showMessage(customerActionMessage, "Customer deleted successfully.", "success");
-    } catch (error) {
-      showMessage(customerActionMessage, error.message || "Could not delete this customer.", "error");
-      button.disabled = false;
-    }
-  }
+document.getElementById("customerForm").addEventListener("submit",async function(event){
+ event.preventDefault();const message=document.getElementById("customerMessage"),button=document.getElementById("saveCustomerBtn");clearMessage(message);if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please sign out and log in again.","error");return}button.disabled=true;button.textContent="Saving...";
+ try{const newCustomer={business_id:currentBusiness.id,name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim()||null,email:document.getElementById("email").value.trim()||null};const {error}=await veloSupabase.from("customers").insert(newCustomer);if(error)throw error;this.reset();selectedCustomerId=null;editingCustomer=false;await loadCustomers();clearMessage(message);showPage("customers",document.querySelectorAll("nav button")[1])}catch(error){showMessage(message,error.message||"Could not save this customer.","error")}finally{button.disabled=false;button.textContent="Save Customer"}
 });
-
-customerDetails.addEventListener("submit", async event => {
-  if (event.target.id !== "editCustomerForm") return;
-  event.preventDefault();
-  const button = document.getElementById("updateCustomerBtn");
-  const customer = customers.find(c => c.id === selectedCustomerId);
-  if (!customer || !currentBusiness) return;
-  const updatedCustomer = {
-    name: document.getElementById("editName").value.trim(),
-    phone: document.getElementById("editPhone").value.trim() || null,
-    email: document.getElementById("editEmail").value.trim() || null
-  };
-  if (!updatedCustomer.name) {
-    showMessage(customerActionMessage, "Customer name is required.", "error");
-    return;
-  }
-  button.disabled = true;
-  button.textContent = "Saving...";
-  try {
-    const { data, error } = await veloSupabase
-      .from("customers")
-      .update(updatedCustomer)
-      .eq("id", customer.id)
-      .eq("business_id", currentBusiness.id)
-      .select("id,business_id,name,phone,email,created_at")
-      .single();
-    if (error) throw error;
-    customers = customers.map(c => c.id === data.id ? data : c);
-    editingCustomer = false;
-    renderCustomers();
-    showMessage(customerActionMessage, "Customer details updated successfully.", "success");
-  } catch (error) {
-    showMessage(customerActionMessage, error.message || "Could not update this customer.", "error");
-    button.disabled = false;
-    button.textContent = "Save Changes";
-  }
+document.getElementById("followupForm").addEventListener("submit",async function(event){
+ event.preventDefault();const message=document.getElementById("followupMessage"),button=document.getElementById("saveFollowupBtn");clearMessage(message);if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please log in again.","error");return}
+ const customerId=document.getElementById("followupCustomer").value,note=document.getElementById("followupNote").value.trim(),dueValue=document.getElementById("followupDue").value;
+ if(!customerId||!customers.some(c=>c.id===customerId)){showMessage(message,"Please choose one of your saved customers.","error");return}if(!note||!dueValue){showMessage(message,"Please enter a reminder and choose its date and time.","error");return}
+ const dueDate=new Date(dueValue);if(Number.isNaN(dueDate.getTime())){showMessage(message,"Please choose a valid date and time.","error");return}
+ button.disabled=true;button.textContent="Saving...";
+ try{const {error}=await veloSupabase.from("follow_ups").insert({customer_id:customerId,note,due_at:dueDate.toISOString(),status:"pending"});if(error)throw error;this.reset();await loadFollowUps();showMessage(message,"Follow-up saved successfully.","success")}catch(error){showMessage(message,error.message||"Could not save this follow-up.","error")}finally{button.disabled=customers.length===0;button.textContent="Save Follow-up"}
 });
-
-document.getElementById("customerForm").addEventListener("submit", async function(event) {
-  event.preventDefault();
-  const message = document.getElementById("customerMessage");
-  const button = document.getElementById("saveCustomerBtn");
-  clearMessage(message);
-  if (!currentBusiness) {
-    showMessage(message, "Your business workspace is not ready. Please sign out and log in again.", "error");
-    return;
-  }
-  button.disabled = true;
-  button.textContent = "Saving...";
-  try {
-    const newCustomer = {
-      business_id: currentBusiness.id,
-      name: document.getElementById("name").value.trim(),
-      phone: document.getElementById("phone").value.trim() || null,
-      email: document.getElementById("email").value.trim() || null
-    };
-    const { error } = await veloSupabase.from("customers").insert(newCustomer);
-    if (error) throw error;
-    this.reset();
-    selectedCustomerId = null;
-    editingCustomer = false;
-    await loadCustomers();
-    clearMessage(message);
-    showPage("customers", document.querySelectorAll("nav button")[1]);
-  } catch (error) {
-    showMessage(message, error.message || "Could not save this customer.", "error");
-  } finally {
-    button.disabled = false;
-    button.textContent = "Save Customer";
-  }
+document.getElementById("followupList").addEventListener("click",async event=>{
+ const button=event.target.closest("[data-followup-action]");if(!button)return;const action=button.dataset.followupAction,followup=followUps.find(f=>f.id===button.dataset.id);if(!followup)return;if(action==="delete"&&!window.confirm("Delete this follow-up reminder?"))return;button.disabled=true;
+ try{let request;if(action==="complete")request=await veloSupabase.from("follow_ups").update({status:"completed"}).eq("id",followup.id).eq("customer_id",followup.customer_id);else if(action==="delete")request=await veloSupabase.from("follow_ups").delete().eq("id",followup.id).eq("customer_id",followup.customer_id);else return;if(request.error)throw request.error;await loadFollowUps();showMessage(document.getElementById("followupMessage"),action==="complete"?"Follow-up marked as completed.":"Follow-up deleted.","success")}catch(error){showMessage(document.getElementById("followupMessage"),error.message||"Could not update this follow-up.","error");button.disabled=false}
 });
-
-function showPage(id, button) {
-  document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  document.querySelectorAll("nav button").forEach(navButton => navButton.classList.remove("active"));
-  if (button) button.classList.add("active");
+function showPage(id,button){
+ document.querySelectorAll(".page").forEach(page=>page.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(navButton=>navButton.classList.remove("active"));if(button)button.classList.add("active");
+ if(id==="followups"&&currentBusiness){renderFollowupCustomerOptions();loadFollowUps().catch(error=>showMessage(document.getElementById("followupMessage"),error.message||"Could not load follow-ups.","error"))}
 }
-
-document.getElementById("signOutBtn").addEventListener("click", async function() {
-  this.disabled = true;
-  const { error } = await veloSupabase.auth.signOut();
-  this.disabled = false;
-  if (error) {
-    alert("Could not sign out: " + error.message);
-    return;
-  }
-  currentUser = null;
-  currentBusiness = null;
-  customers = [];
-  selectedCustomerId = null;
-  editingCustomer = false;
-  appShell.style.display = "none";
-  authScreen.style.display = "block";
-  document.getElementById("signOutBtn").style.display = "none";
-  document.getElementById("authForm").reset();
-  setAuthMode("login");
+document.getElementById("signOutBtn").addEventListener("click",async function(){
+ this.disabled=true;const {error}=await veloSupabase.auth.signOut();this.disabled=false;if(error){alert("Could not sign out: "+error.message);return}currentUser=null;currentBusiness=null;customers=[];followUps=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";document.getElementById("authForm").reset();setAuthMode("login")
 });
-
-async function startApp() {
-  const { data, error } = await veloSupabase.auth.getSession();
-  if (error) {
-    showMessage(authMessage, error.message, "error");
-    return;
-  }
-  if (data.session?.user) await openWorkspace(data.session.user);
-}
-veloSupabase.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT") {
-    currentUser = null;
-    currentBusiness = null;
-    customers = [];
-    selectedCustomerId = null;
-    editingCustomer = false;
-    appShell.style.display = "none";
-    authScreen.style.display = "block";
-    document.getElementById("signOutBtn").style.display = "none";
-  }
-});
+async function startApp(){const {data,error}=await veloSupabase.auth.getSession();if(error){showMessage(authMessage,error.message,"error");return}if(data.session?.user)await openWorkspace(data.session.user)}
+veloSupabase.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;customers=[];followUps=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none"}});
 startApp();
 </script>
 </body>
