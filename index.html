@@ -213,6 +213,122 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   outline:none;
   box-shadow:0 0 0 3px rgba(192,192,192,.09);
 }
+/* Branded customer filter: replaces the Android/Chrome native select popup */
+#customers .customer-filter-wrap{
+  position:relative;
+  min-width:0;
+}
+#customers .customer-filter-native{
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  min-height:0 !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+  background:transparent !important;
+  pointer-events:none !important;
+}
+#customers .customer-filter-trigger{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  width:100%;
+  min-height:48px;
+  margin:0;
+  padding:12px 15px;
+  border:1px solid #414141;
+  border-radius:9px;
+  background:linear-gradient(145deg,#191919,#111);
+  color:#ededed;
+  text-align:left;
+  font:inherit;
+  font-size:14px;
+  font-weight:600;
+  transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+#customers .customer-filter-trigger:hover,
+#customers .customer-filter-trigger[aria-expanded="true"]{
+  border-color:#888;
+  background:linear-gradient(145deg,#222,#151515);
+}
+#customers .customer-filter-trigger:focus-visible{
+  outline:2px solid #c8c8c8;
+  outline-offset:3px;
+  box-shadow:0 0 0 3px rgba(192,192,192,.09);
+}
+#customers .customer-filter-chevron{
+  flex:0 0 auto;
+  width:9px;
+  height:9px;
+  margin:0 3px 4px 0;
+  border-right:2px solid #bdbdbd;
+  border-bottom:2px solid #bdbdbd;
+  transform:rotate(45deg);
+  transition:transform .18s ease,margin .18s ease;
+}
+#customers .customer-filter-trigger[aria-expanded="true"] .customer-filter-chevron{
+  margin-top:7px;
+  margin-bottom:0;
+  transform:rotate(225deg);
+}
+#customers .customer-filter-menu[hidden]{
+  display:none !important;
+}
+#customers .customer-filter-menu{
+  position:absolute;
+  top:calc(100% + 8px);
+  left:0;
+  right:0;
+  z-index:1000;
+  display:grid;
+  gap:4px;
+  padding:7px;
+  border:1px solid #484848;
+  border-radius:12px;
+  background:linear-gradient(145deg,#252525,#171717);
+  box-shadow:0 16px 38px rgba(0,0,0,.58);
+}
+#customers .customer-filter-option{
+  display:flex;
+  align-items:center;
+  min-height:48px;
+  padding:11px 13px;
+  border:1px solid transparent;
+  border-radius:8px;
+  color:#dedede;
+  font-size:14px;
+  font-weight:500;
+  line-height:1.35;
+  cursor:pointer;
+  user-select:none;
+  transition:background .15s ease,color .15s ease,border-color .15s ease;
+}
+#customers .customer-filter-option:hover,
+#customers .customer-filter-option:focus-visible{
+  outline:none;
+  border-color:#555;
+  background:#303030;
+  color:#fff;
+}
+#customers .customer-filter-option.is-selected{
+  justify-content:space-between;
+  border-color:#d0d0d0;
+  background:linear-gradient(135deg,#dedede,#aaa);
+  color:#090909;
+  font-weight:700;
+}
+#customers .customer-filter-option.is-selected::after{
+  content:"✓";
+  margin-left:12px;
+  font-size:15px;
+  font-weight:800;
+}
+
 #customers #customerList{
   padding:8px 17px;
   border:1px solid #353535;
@@ -483,11 +599,22 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div id="customerImportPreview" class="panel" style="display:none;margin-bottom:16px"></div>
   <div class="customer-tools">
     <input id="customerSearch" type="search" placeholder="Search by name, phone or email" aria-label="Search customers">
-    <select id="customerFilter" aria-label="Filter customers">
-      <option value="all">All customers</option>
-      <option value="phone">Customers with phone</option>
-      <option value="email">Customers with email</option>
-    </select>
+    <div class="customer-filter-wrap" id="customerFilterWrap">
+      <select id="customerFilter" class="customer-filter-native" aria-hidden="true" tabindex="-1">
+        <option value="all">All customers</option>
+        <option value="phone">Customers with phone</option>
+        <option value="email">Customers with email</option>
+      </select>
+      <button type="button" id="customerFilterTrigger" class="customer-filter-trigger" aria-haspopup="listbox" aria-expanded="false" aria-controls="customerFilterMenu">
+        <span id="customerFilterLabel">All customers</span>
+        <span class="customer-filter-chevron" aria-hidden="true"></span>
+      </button>
+      <div id="customerFilterMenu" class="customer-filter-menu" role="listbox" aria-label="Filter customers" aria-labelledby="customerFilterTrigger" hidden>
+        <div class="customer-filter-option is-selected" role="option" data-filter="all" aria-selected="true" tabindex="0">All customers</div>
+        <div class="customer-filter-option" role="option" data-filter="phone" aria-selected="false" tabindex="-1">Customers with phone</div>
+        <div class="customer-filter-option" role="option" data-filter="email" aria-selected="false" tabindex="-1">Customers with email</div>
+      </div>
+    </div>
   </div>
   <div class="panel" id="customerList"><p class="empty">Loading customer records...</p></div>
   <div id="customerDetails" class="panel detail-panel" style="display:none"></div>
@@ -604,6 +731,7 @@ function renderCustomers(){
  const search=(document.getElementById("customerSearch")?.value||"").trim().toLowerCase();
  const filter=document.getElementById("customerFilter")?.value||customerFilter;
  customerFilter=filter;
+  syncCustomerFilterUI();
  const matchingCustomers=customers.filter(c=>{
   const matchesSearch=!search||[c.name,c.phone,c.email].some(value=>(value||"").toLowerCase().includes(search));
   const matchesFilter=filter==="phone"?!!(c.phone||"").trim():filter==="email"?!!(c.email||"").trim():true;
@@ -615,8 +743,82 @@ function renderCustomers(){
  else customerHTML=matchingCustomers.map(c=>`<div class="customer"><button type="button" class="customer-select" data-action="view" data-id="${escapeHTML(c.id)}"><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")} · ${escapeHTML(c.email||"No email added")}</p></button><span class="tag">View details</span></div>`).join("");
  document.getElementById("customerList").innerHTML=customerHTML;document.getElementById("recentCustomers").innerHTML=customers.length?customers.slice(0,3).map(c=>`<div class="customer"><div><strong>${escapeHTML(c.name)}</strong><p>${escapeHTML(c.phone||"No phone added")}</p></div><span class="tag">Customer</span></div>`).join(""):'<p class="empty">Your customer records will appear here.</p>';document.getElementById("customerCount").textContent=customers.length;document.getElementById("exportCustomersBtn").disabled=customers.length===0;renderCustomerDetails();renderFollowupCustomerOptions()
 }
+const customerFilterSelect=document.getElementById("customerFilter");
+const customerFilterWrap=document.getElementById("customerFilterWrap");
+const customerFilterTrigger=document.getElementById("customerFilterTrigger");
+const customerFilterMenu=document.getElementById("customerFilterMenu");
+const customerFilterLabel=document.getElementById("customerFilterLabel");
+function syncCustomerFilterUI(){
+ const labels={all:"All customers",phone:"Customers with phone",email:"Customers with email"};
+ const selected=customerFilterSelect.value||"all";
+ customerFilterLabel.textContent=labels[selected]||labels.all;
+ customerFilterMenu.querySelectorAll(".customer-filter-option").forEach(option=>{
+  const active=option.dataset.filter===selected;
+  option.classList.toggle("is-selected",active);
+  option.setAttribute("aria-selected",String(active));
+  option.tabIndex=active?0:-1;
+ });
+}
+function closeCustomerFilterMenu(returnFocus=false){
+ customerFilterMenu.hidden=true;
+ customerFilterTrigger.setAttribute("aria-expanded","false");
+ if(returnFocus)customerFilterTrigger.focus();
+}
+function openCustomerFilterMenu(){
+ customerFilterMenu.hidden=false;
+ customerFilterTrigger.setAttribute("aria-expanded","true");
+ const selected=customerFilterMenu.querySelector('[data-filter="'+customerFilterSelect.value+'"]');
+ (selected||customerFilterMenu.querySelector(".customer-filter-option"))?.focus();
+}
+customerFilterTrigger.addEventListener("click",()=>{
+ if(customerFilterTrigger.getAttribute("aria-expanded")==="true")closeCustomerFilterMenu();
+ else openCustomerFilterMenu();
+});
+customerFilterTrigger.addEventListener("keydown",event=>{
+ if(event.key==="ArrowDown"||event.key==="ArrowUp"){
+  event.preventDefault();
+  openCustomerFilterMenu();
+  if(event.key==="ArrowUp")customerFilterMenu.querySelector(".customer-filter-option:last-child")?.focus();
+ }
+});
+customerFilterMenu.addEventListener("click",event=>{
+ const option=event.target.closest(".customer-filter-option");
+ if(!option)return;
+ customerFilterSelect.value=option.dataset.filter;
+ customerFilterSelect.dispatchEvent(new Event("change",{bubbles:true}));
+ closeCustomerFilterMenu(true);
+});
+customerFilterMenu.addEventListener("keydown",event=>{
+ const options=Array.from(customerFilterMenu.querySelectorAll(".customer-filter-option"));
+ const currentIndex=options.indexOf(document.activeElement);
+ if(event.key==="Escape"){
+  event.preventDefault();
+  closeCustomerFilterMenu(true);
+ }else if(event.key==="ArrowDown"||event.key==="ArrowUp"||event.key==="Home"||event.key==="End"){
+  event.preventDefault();
+  let nextIndex=currentIndex;
+  if(event.key==="ArrowDown")nextIndex=(currentIndex+1+options.length)%options.length;
+  if(event.key==="ArrowUp")nextIndex=(currentIndex-1+options.length)%options.length;
+  if(event.key==="Home")nextIndex=0;
+  if(event.key==="End")nextIndex=options.length-1;
+  options[nextIndex]?.focus();
+ }else if(event.key==="Enter"||event.key===" "){
+  event.preventDefault();
+  document.activeElement?.click();
+ }
+});
+document.addEventListener("click",event=>{
+ if(!customerFilterWrap.contains(event.target))closeCustomerFilterMenu();
+});
+customerFilterWrap.addEventListener("focusout",event=>{
+ if(!customerFilterWrap.contains(event.relatedTarget))closeCustomerFilterMenu();
+});
 document.getElementById("customerSearch").addEventListener("input",renderCustomers);
-document.getElementById("customerFilter").addEventListener("change",renderCustomers);
+customerFilterSelect.addEventListener("change",()=>{
+ syncCustomerFilterUI();
+ renderCustomers();
+});
+syncCustomerFilterUI();
 function csvCell(value){
  let text=String(value??"");
  if(/^[\s]*[=+@\-]/.test(text))text="'"+text;
