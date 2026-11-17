@@ -425,6 +425,27 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   border-radius:7px;
   font-size:12px;
 }
+#customers #customerDetails .profile-contact-links{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+#customers #customerDetails .profile-contact-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid #555;
+  border-radius:7px;
+  background:#202020;
+  color:#eee;
+  font-size:12px;
+  text-decoration:none;
+}
+#customers #customerDetails .profile-contact-link:hover{background:#2a2a2a;border-color:#999}
+#customers #customerDetails .customer-since{margin-top:12px;color:#999;font-size:11px}
 #customers #customerDetails .customer-profile-summary,
 #customers #customerDetails .activity-timeline{
   margin-top:22px;
@@ -1056,12 +1077,12 @@ function renderCustomerTimeline(customerId){
 function renderCustomerDetails(){
  const customer=customers.find(c=>c.id===selectedCustomerId);if(!customer){customerDetails.style.display="none";customerDetails.innerHTML="";return}customerDetails.style.display="block";
  if(editingCustomer)customerDetails.innerHTML=`<h2>Edit Customer</h2><p class="empty">Update this customer's information, then save your changes.</p><form id="editCustomerForm"><label for="editName">Customer name</label><input id="editName" name="name" required maxlength="150" value="${escapeHTML(customer.name)}"><label for="editPhone">Phone number</label><input id="editPhone" name="phone" type="tel" value="${escapeHTML(customer.phone||"")}"><label for="editEmail">Customer email</label><input id="editEmail" name="email" type="email" value="${escapeHTML(customer.email||"")}"><div class="detail-actions"><button id="updateCustomerBtn" type="submit">Save Changes</button><button type="button" class="secondary" data-action="cancel-edit">Cancel</button></div></form>`;
- else customerDetails.innerHTML=`<small class="tag">CUSTOMER DETAILS</small><h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2><div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone||"Not provided")}</div><div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email||"Not provided")}</div><div class="detail-actions"><button type="button" data-action="edit">Edit Customer</button><button type="button" class="danger" data-action="delete">Delete Customer</button><button type="button" class="secondary" data-action="close-details">Close</button></div>${renderCustomerSummary(customer.id)}${renderCustomerTimeline(customer.id)}`
+ else customerDetails.innerHTML=`<small class="tag">CUSTOMER DETAILS</small><h2 style="margin:8px 0 14px">${escapeHTML(customer.name)}</h2><div class="detail-line"><span class="detail-label">Phone number</span>${escapeHTML(customer.phone||"Not provided")}</div><div class="detail-line"><span class="detail-label">Email address</span>${escapeHTML(customer.email||"Not provided")}</div><div class="profile-contact-links">${customer.phone?`<a class="profile-contact-link" href="tel:${escapeHTML(customer.phone)}">Call customer</a>`:""}${customer.email?`<a class="profile-contact-link" href="mailto:${escapeHTML(customer.email)}">Send email</a>`:""}</div><p class="customer-since">Customer added: ${escapeHTML(customer.created_at?formatDate(customer.created_at):"Date unavailable")}</p><div class="detail-actions"><button type="button" data-action="schedule-followup">＋ Schedule Follow-up</button><button type="button" data-action="record-interaction">＋ Record Interaction</button><button type="button" data-action="edit">Edit Customer</button><button type="button" class="danger" data-action="delete">Delete Customer</button><button type="button" class="secondary" data-action="close-details">Close</button></div>${renderCustomerSummary(customer.id)}${renderCustomerTimeline(customer.id)}`
 }
 document.getElementById("customerList").addEventListener("click",event=>{const button=event.target.closest("[data-action='view']");if(!button)return;selectedCustomerId=button.dataset.id;editingCustomer=false;clearMessage(customerActionMessage);renderCustomerDetails()});
 customerDetails.addEventListener("click",async event=>{
  const button=event.target.closest("[data-action]");if(!button)return;const action=button.dataset.action;
- if(action==="edit"){editingCustomer=true;renderCustomerDetails()}else if(action==="cancel-edit"){editingCustomer=false;renderCustomerDetails()}else if(action==="close-details"){selectedCustomerId=null;editingCustomer=false;renderCustomerDetails()}else if(action==="delete"){
+ if(action==="edit"){editingCustomer=true;renderCustomerDetails()}else if(action==="cancel-edit"){editingCustomer=false;renderCustomerDetails()}else if(action==="close-details"){selectedCustomerId=null;editingCustomer=false;renderCustomerDetails()}else if(action==="schedule-followup"){showPage("followups",document.querySelectorAll("nav button")[3]);renderFollowupCustomerOptions();const select=document.getElementById("followupCustomer");if(select){select.value=selectedCustomerId;syncFollowupCustomerPicker()}}else if(action==="record-interaction"){showPage("interactions",document.querySelectorAll("nav button")[4]);renderInteractionCustomerOptions();const select=document.getElementById("interactionCustomer");if(select){select.value=selectedCustomerId;syncInteractionCustomerPicker()}}else if(action==="delete"){
  const customer=customers.find(c=>c.id===selectedCustomerId);if(!customer)return;if(!await confirmVeloCRM({title:"Delete this customer?",message:"You are about to delete "+customer.name+". This action cannot be undone.",confirmText:"Delete customer"}))return;button.disabled=true;
  try{const {error}=await veloSupabase.from("customers").delete().eq("id",customer.id).eq("business_id",currentBusiness.id);if(error)throw error;selectedCustomerId=null;editingCustomer=false;await loadCustomers();await loadFollowUps();showMessage(customerActionMessage,"Customer deleted successfully.","success")}catch(error){showMessage(customerActionMessage,error.message||"Could not delete this customer.","error");button.disabled=false}
  }});
