@@ -170,7 +170,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
 const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
 const veloSupabase = window.supabase.createClient(VELO_SUPABASE_URL, VELO_SUPABASE_KEY);
-let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],interactions=[],selectedCustomerId=null,editingCustomer=false;
+let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],interactions=[],selectedCustomerId=null,editingCustomer=false,editingInteractionId=null;
 const authScreen=document.getElementById("authScreen"),appShell=document.getElementById("appShell"),authMessage=document.getElementById("authMessage"),customerDetails=document.getElementById("customerDetails"),customerActionMessage=document.getElementById("customerActionMessage");
 function showMessage(element,message,type){element.textContent=message;element.className="notice "+(type||"");element.style.display="block"}
 function clearMessage(element){element.textContent="";element.style.display="none"}
@@ -199,7 +199,11 @@ function renderInteractions(){
   document.getElementById("interactionCount").textContent=interactions.length;
   const list=document.getElementById("interactionList");
   if(!interactions.length){list.innerHTML='<p class="empty">No interaction records yet. Use the form above to record your first customer interaction.</p>';return}
-  list.innerHTML=interactions.map(item=>`<div class="interaction"><strong>${escapeHTML(item.customers?.name||"Customer")}</strong><p>${escapeHTML(item.note)}</p><p class="tag">Recorded: ${escapeHTML(formatDate(item.created_at))}</p></div>`).join("");
+  list.innerHTML=interactions.map(item=>{
+    const customerName=item.customers?.name||"Customer";
+    if(editingInteractionId===item.id)return `<div class="interaction"><strong>${escapeHTML(customerName)}</strong><form class="form-box" data-interaction-edit-form="${escapeHTML(item.id)}"><label for="editInteractionNote">Edit interaction note</label><textarea id="editInteractionNote" name="note" required maxlength="2000">${escapeHTML(item.note)}</textarea><div class="followup-actions"><button type="submit" data-interaction-save="${escapeHTML(item.id)}">Save Changes</button><button type="button" class="secondary" data-interaction-action="cancel" data-id="${escapeHTML(item.id)}">Cancel</button></div></form><p class="tag">Recorded: ${escapeHTML(formatDate(item.created_at))}</p></div>`;
+    return `<div class="interaction"><strong>${escapeHTML(customerName)}</strong><p>${escapeHTML(item.note)}</p><p class="tag">Recorded: ${escapeHTML(formatDate(item.created_at))}</p><div class="followup-actions"><button type="button" data-interaction-action="edit" data-id="${escapeHTML(item.id)}">Edit</button><button type="button" class="danger" data-interaction-action="delete" data-id="${escapeHTML(item.id)}">Delete</button></div></div>`;
+  }).join("");
 }
 function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
 function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?"Date unavailable":date.toLocaleString()}
@@ -237,6 +241,26 @@ document.getElementById("customerForm").addEventListener("submit",async function
  event.preventDefault();const message=document.getElementById("customerMessage"),button=document.getElementById("saveCustomerBtn");clearMessage(message);if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please sign out and log in again.","error");return}button.disabled=true;button.textContent="Saving...";
  try{const newCustomer={business_id:currentBusiness.id,name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim()||null,email:document.getElementById("email").value.trim()||null};const {error}=await veloSupabase.from("customers").insert(newCustomer);if(error)throw error;this.reset();selectedCustomerId=null;editingCustomer=false;await loadCustomers();clearMessage(message);showPage("customers",document.querySelectorAll("nav button")[1])}catch(error){showMessage(message,error.message||"Could not save this customer.","error")}finally{button.disabled=false;button.textContent="Save Customer"}
 });
+document.getElementById("interactionList").addEventListener("click",async event=>{
+  const button=event.target.closest("[data-interaction-action]");if(!button)return;
+  const action=button.dataset.interactionAction,id=button.dataset.id,item=interactions.find(record=>record.id===id);if(!item)return;
+  if(action==="cancel"){editingInteractionId=null;renderInteractions();return}
+  if(action==="edit"){editingInteractionId=id;renderInteractions();return}
+  if(action==="delete"){
+    if(!window.confirm("Delete this interaction record? This cannot be undone."))return;
+    button.disabled=true;
+    try{const {error}=await veloSupabase.from("interactions").delete().eq("id",item.id).eq("customer_id",item.customer_id);if(error)throw error;editingInteractionId=null;await loadInteractions();showMessage(document.getElementById("interactionMessage"),"Interaction deleted successfully.","success")}
+    catch(error){showMessage(document.getElementById("interactionMessage"),error.message||"Could not delete this interaction.","error");button.disabled=false}
+  }
+});
+document.getElementById("interactionList").addEventListener("submit",async event=>{
+  const form=event.target.closest("[data-interaction-edit-form]");if(!form)return;event.preventDefault();
+  const id=form.dataset.interactionEditForm,item=interactions.find(record=>record.id===id),button=form.querySelector('button[type="submit"]'),note=form.querySelector('textarea[name="note"]').value.trim();
+  if(!item)return;if(!note){showMessage(document.getElementById("interactionMessage"),"Please enter an interaction note.","error");return}
+  button.disabled=true;button.textContent="Saving...";
+  try{const {error}=await veloSupabase.from("interactions").update({note}).eq("id",item.id).eq("customer_id",item.customer_id);if(error)throw error;editingInteractionId=null;await loadInteractions();showMessage(document.getElementById("interactionMessage"),"Interaction updated successfully.","success")}
+  catch(error){showMessage(document.getElementById("interactionMessage"),error.message||"Could not update this interaction.","error");button.disabled=false;button.textContent="Save Changes"}
+});
 document.getElementById("interactionForm").addEventListener("submit",async function(event){
   event.preventDefault();const message=document.getElementById("interactionMessage"),button=document.getElementById("saveInteractionBtn");clearMessage(message);
   if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please log in again.","error");return}
@@ -265,10 +289,10 @@ function showPage(id,button){
  if(id==="followups"&&currentBusiness){renderFollowupCustomerOptions();loadFollowUps().catch(error=>showMessage(document.getElementById("followupMessage"),error.message||"Could not load follow-ups.","error"))}if(id==="interactions"&&currentBusiness){renderInteractionCustomerOptions();loadInteractions().catch(error=>showMessage(document.getElementById("interactionMessage"),error.message||"Could not load interaction history.","error"))}
 }
 document.getElementById("signOutBtn").addEventListener("click",async function(){
- this.disabled=true;const {error}=await veloSupabase.auth.signOut();this.disabled=false;if(error){alert("Could not sign out: "+error.message);return}currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";document.getElementById("authForm").reset();setAuthMode("login")
+ this.disabled=true;const {error}=await veloSupabase.auth.signOut();this.disabled=false;if(error){alert("Could not sign out: "+error.message);return}currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;editingInteractionId=null;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";document.getElementById("authForm").reset();setAuthMode("login")
 });
 async function startApp(){const {data,error}=await veloSupabase.auth.getSession();if(error){showMessage(authMessage,error.message,"error");return}if(data.session?.user)await openWorkspace(data.session.user)}
-veloSupabase.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none"}});
+veloSupabase.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;editingInteractionId=null;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none"}});
 startApp();
 </script>
 </body>
