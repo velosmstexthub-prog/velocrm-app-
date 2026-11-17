@@ -903,13 +903,116 @@ document.getElementById("customerImportPreview").addEventListener("click",async 
 });
 function renderFollowupCustomerOptions(){
  const select=document.getElementById("followupCustomer"),previousValue=select.value;select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");if(customers.some(c=>c.id===previousValue))select.value=previousValue;const noCustomers=customers.length===0;document.getElementById("saveFollowupBtn").disabled=noCustomers;if(noCustomers)select.innerHTML='<option value="">Add a customer first</option>'
-}
+
 function renderFollowUps(){
- const pending=followUps.filter(f=>(f.status||"pending").toLowerCase()!=="completed");document.getElementById("followupCount").textContent=pending.length;const upcoming=pending.slice(0,3);
- document.getElementById("upcomingFollowups").innerHTML=upcoming.length?upcoming.map(f=>`<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><p>${escapeHTML(f.note)}</p><p>${escapeHTML(formatDate(f.due_at))}</p></div>`).join(""):'<div><p class="empty">You are all caught up. Schedule a reminder when a customer needs your attention.</p><button type="button" class="empty-action" onclick="showPage(\'followups\',document.querySelectorAll(\'nav button\')[3])">Schedule a follow-up</button></div>';
- const list=document.getElementById("followupList");if(!followUps.length){list.innerHTML='<p class="empty">No follow-up reminders yet. Use the form above to create your first reminder.</p>';return}
- list.innerHTML=followUps.map(f=>{const completed=(f.status||"pending").toLowerCase()==="completed";return `<div class="followup"><strong>${escapeHTML(f.customers?.name||"Customer")}</strong><span class="status">${completed?"Completed":"Pending"}</span><p>${escapeHTML(f.note)}</p><p>Due: ${escapeHTML(formatDate(f.due_at))}</p><div class="followup-actions">${completed?"":`<button type="button" data-followup-action="complete" data-id="${escapeHTML(f.id)}">Mark completed</button>`}<button type="button" class="danger" data-followup-action="delete" data-id="${escapeHTML(f.id)}">Delete</button></div></div>`}).join("")
+ const now=Date.now();
+ const heading=document.querySelector("#followups .section-heading");
+ const list=document.getElementById("followupList");
+
+ const getInfo=f=>{
+  const completed=(f.status||"pending").toLowerCase()==="completed";
+  const dueTime=new Date(f.due_at).getTime();
+  const overdue=!completed&&Number.isFinite(dueTime)&&dueTime<now;
+  return {completed,overdue};
+ };
+
+ const pending=followUps.filter(f=>!getInfo(f).completed);
+ const overdue=pending.filter(f=>getInfo(f).overdue);
+ const completed=followUps.filter(f=>getInfo(f).completed);
+ const upcoming=pending.filter(f=>!getInfo(f).overdue)
+  .sort((a,b)=>new Date(a.due_at)-new Date(b.due_at));
+
+ document.getElementById("followupCount").textContent=pending.length;
+
+ document.getElementById("upcomingFollowups").innerHTML=
+  upcoming.length
+  ?upcoming.slice(0,3).map(f=>`
+   <div class="followup">
+    <strong>${escapeHTML(f.customers?.name||"Customer")}</strong>
+    <p>${escapeHTML(f.note)}</p>
+    <p>Due: ${escapeHTML(formatDate(f.due_at))}</p>
+   </div>`).join("")
+  :'<p class="empty">No upcoming reminders. Schedule a follow-up when a customer needs your attention.</p>';
+
+ const activeFilter=heading.dataset.filter||"all";
+
+ const filters=[
+  {id:"all",label:"All",count:followUps.length},
+  {id:"pending",label:"Pending",count:pending.length},
+  {id:"overdue",label:"Overdue",count:overdue.length},
+  {id:"completed",label:"Completed",count:completed.length}
+ ];
+
+ heading.innerHTML=`
+  <h2>Your Follow-up Reminders</h2>
+  <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px">
+   ${filters.map(f=>`
+    <button type="button"
+     data-followup-filter="${f.id}"
+     class="${activeFilter===f.id?"":"secondary"}"
+     aria-pressed="${activeFilter===f.id}"
+     style="padding:8px 11px;font-size:12px">
+     ${f.label} (${f.count})
+    </button>`).join("")}
+  </div>`;
+
+ let visible=followUps.filter(f=>{
+  const info=getInfo(f);
+  if(activeFilter==="pending")return !info.completed&&!info.overdue;
+  if(activeFilter==="overdue")return info.overdue;
+  if(activeFilter==="completed")return info.completed;
+  return true;
+ });
+
+ if(!visible.length){
+  const messages={
+   all:"No follow-up reminders yet. Use the form above to create your first reminder.",
+   pending:"You have no pending reminders.",
+   overdue:"Great! You have no overdue reminders.",
+   completed:"You haven't completed any reminders yet."
+  };
+  list.innerHTML=`<p class="empty">${messages[activeFilter]||messages.all}</p>`;
+  return;
+ }
+
+ list.innerHTML=visible.map(f=>{
+  const info=getInfo(f);
+  const status=info.completed?"Completed":info.overdue?"Overdue":"Pending";
+  const statusStyle=info.completed
+   ?"border-color:#547b5c;color:#bfe8c6;"
+   :info.overdue
+   ?"border-color:#9b5555;color:#ffbaba;"
+   :"border-color:#777;color:#ddd;";
+
+  return `
+   <div class="followup">
+    <strong>${escapeHTML(f.customers?.name||"Customer")}</strong>
+    <span class="status" style="${statusStyle}">${status}</span>
+    <p>${escapeHTML(f.note)}</p>
+    <p>Due: ${escapeHTML(formatDate(f.due_at))}</p>
+    <div class="followup-actions">
+     ${info.completed?"":`
+      <button type="button" data-followup-action="complete"
+       data-id="${escapeHTML(f.id)}">Mark completed</button>`}
+     <button type="button" class="danger"
+      data-followup-action="delete"
+      data-id="${escapeHTML(f.id)}">Delete</button>
+    </div>
+   </div>`;
+ }).join("");
 }
+
+document.querySelector("#followups .section-heading")
+ .addEventListener("click",event=>{
+  const button=event.target.closest("[data-followup-filter]");
+  if(!button)return;
+  const heading=document.querySelector("#followups .section-heading");
+  heading.dataset.filter=button.dataset.followupFilter;
+  renderFollowUps();
+ });
+ 
+
+
 function renderCustomerSummary(customerId){
  const customerInteractions=interactions.filter(item=>item.customer_id===customerId);
  const customerFollowUps=followUps.filter(item=>item.customer_id===customerId);
