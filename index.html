@@ -589,6 +589,31 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 #interactions .interaction-customer-option:hover,#interactions .interaction-customer-option:focus-visible,#followups .interaction-customer-option:hover,#followups .interaction-customer-option:focus-visible{outline:none;border-color:#555;background:#303030;color:#fff}
 #interactions .interaction-customer-option.is-selected,#followups .interaction-customer-option.is-selected{justify-content:space-between;border-color:#d0d0d0;background:#303030;color:#fff}
 
+
+/* About page: product story and VeloAxis ecosystem */
+.about-hero{position:relative;overflow:hidden;padding:28px 24px;margin-bottom:30px;border:1px solid #454545;border-radius:15px;background:radial-gradient(circle at 88% 15%,rgba(220,220,220,.13),transparent 32%),linear-gradient(135deg,#202020,#101010 76%)}
+.about-eyebrow,.about-section-heading small,.about-mission-card>small,.about-ecosystem small{color:#c7c7c7;font-size:10px;font-weight:700;letter-spacing:2.2px}
+.about-hero h1{max-width:650px;font-size:clamp(29px,5vw,43px);line-height:1.12;margin:13px 0 12px;letter-spacing:-.7px}
+.about-hero>p{max-width:610px;color:#aaa;font-size:14px;line-height:1.75}
+.about-product-mark{display:inline-block;margin-top:24px;padding:8px 12px;border:1px solid #555;border-radius:6px;color:#f2f2f2;font-size:13px;font-weight:800;letter-spacing:2px;background:rgba(0,0,0,.22)}
+.about-product-mark span{color:#aaa}
+.about-section-heading{max-width:650px;margin:0 0 17px}
+.about-section-heading h2{font-size:22px;line-height:1.3;margin:7px 0}
+.about-section-heading p,.about-feature p,.about-mission-card p,.about-ecosystem p{color:#999;font-size:13px;line-height:1.7}
+.about-feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-bottom:25px}
+.about-feature{min-width:0;padding:17px;border:1px solid #343434;border-radius:10px;background:linear-gradient(145deg,#191919,#111)}
+.about-feature-number{display:inline-block;color:#aaa;font-size:10px;letter-spacing:1.5px;margin-bottom:12px}
+.about-feature h3{font-size:15px;margin-bottom:6px}
+.about-mission-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:25px}
+.about-mission-card{padding:20px;border:1px solid #3c3c3c;border-radius:11px;background:#151515}
+.about-mission-card h2{font-size:19px;line-height:1.35;margin:10px 0}
+.about-vision-card{background:linear-gradient(145deg,#1a1a1a,#111)}
+.about-ecosystem{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:21px;border:1px solid #555;border-radius:12px;background:linear-gradient(120deg,#202020,#111)}
+.about-ecosystem>div:first-child{max-width:650px}
+.about-ecosystem h2{font-size:20px;line-height:1.35;margin:8px 0}
+.about-ecosystem-stamp{flex:0 0 76px;width:76px;height:76px;display:grid;place-content:center;text-align:center;border:1px solid #777;border-radius:50%;color:#ddd;font-size:10px;font-weight:bold;letter-spacing:1.5px;line-height:1.5}
+@media(max-width:560px){.about-hero{padding:22px 18px}.about-feature-grid,.about-mission-grid{grid-template-columns:1fr}.about-feature{padding:15px}.about-ecosystem{align-items:flex-start;padding:18px}.about-ecosystem-stamp{flex-basis:62px;width:62px;height:62px;font-size:9px}.about-ecosystem h2{font-size:18px}}
+
 </style>
 </head>
 <body>
@@ -743,8 +768,46 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="panel" id="interactionList"><p class="empty">Loading interaction history...</p></div>
 </section>
 <section id="about" class="page">
-  <div class="welcome"><small>POWERED BY VELOAXIS</small><h1>About VeloCRM</h1><p>VeloCRM is being developed to help businesses manage customers, track interactions and organise follow-ups.</p></div>
-  <div class="panel"><h2>Our mission</h2><p style="color:#aaa;margin-top:10px">Make customer management simpler, smarter and more accessible for businesses.</p><p class="tag" style="margin-top:20px">FIRST PRODUCT IN THE VELOAXIS ECOSYSTEM</p></div>
+  <div class="about-hero">
+    <div class="about-eyebrow">POWERED BY VELOAXIS</div>
+    <h1>Better customer relationships start here.</h1>
+    <p>VeloCRM helps businesses keep customer information organised, stay on top of conversations and follow up with confidence — all in one place.</p>
+    <div class="about-product-mark">VELO<span>CRM</span></div>
+  </div>
+
+  <div class="about-section-heading">
+    <small>THE PRODUCT</small>
+    <h2>One place to manage the customer journey.</h2>
+    <p>From the first saved contact to the next important conversation, VeloCRM helps you keep the details together.</p>
+  </div>
+  <div class="about-feature-grid">
+    <article class="about-feature"><span class="about-feature-number">01</span><h3>Customer records</h3><p>Keep names and contact details organised so important information is easy to find.</p></article>
+    <article class="about-feature"><span class="about-feature-number">02</span><h3>Interaction history</h3><p>Record conversations and keep useful context about your customer relationships.</p></article>
+    <article class="about-feature"><span class="about-feature-number">03</span><h3>Follow-up reminders</h3><p>Track what needs attention and remember the next step with your customers.</p></article>
+    <article class="about-feature"><span class="about-feature-number">04</span><h3>Customer insights</h3><p>See customer activity and key follow-up details in one organised workspace.</p></article>
+  </div>
+
+  <div class="about-mission-grid">
+    <article class="about-mission-card">
+      <small>OUR MISSION</small>
+      <h2>Make customer management simpler, smarter and more accessible.</h2>
+      <p>We believe businesses should be able to build stronger customer relationships without losing track of the details that matter.</p>
+    </article>
+    <article class="about-mission-card about-vision-card">
+      <small>OUR APPROACH</small>
+      <h2>Useful technology. Built around real business needs.</h2>
+      <p>VeloCRM is designed with clarity, practical tools and a straightforward experience at its core. We will keep improving it as businesses grow and their needs evolve.</p>
+    </article>
+  </div>
+
+  <div class="about-ecosystem">
+    <div>
+      <small>THE VELOAXIS ECOSYSTEM</small>
+      <h2>One technology company. A growing family of solutions.</h2>
+      <p>VeloCRM is the first product in the VeloAxis ecosystem — a technology brand focused on software, business communication, customer management and automation.</p>
+    </div>
+    <div class="about-ecosystem-stamp">FIRST<br>PRODUCT</div>
+  </div>
 </section>
 </main>
 </div>
