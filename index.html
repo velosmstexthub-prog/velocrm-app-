@@ -57,6 +57,9 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .followup:last-child{border-bottom:none}
 .followup p{color:#aaa;font-size:13px;overflow-wrap:anywhere;margin:5px 0}
 .followup-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.interaction{padding:15px 0;border-bottom:1px solid #292929}
+.interaction:last-child{border-bottom:none}
+.interaction p{color:#aaa;font-size:13px;overflow-wrap:anywhere;margin:5px 0}
 .status{display:inline-block;font-size:11px;padding:3px 8px;border:1px solid #555;border-radius:20px;color:#ddd;margin-left:6px}
 @media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}main{padding-top:40px}}
 </style>
@@ -89,6 +92,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <button onclick="showPage('customers',this)">Customers</button>
   <button onclick="showPage('addCustomer',null)">Add Customer</button>
   <button onclick="showPage('followups',this)">Follow-ups</button>
+  <button onclick="showPage('interactions',this)">Interactions</button>
   <button onclick="showPage('about',this)">About</button>
 </nav>
 <main>
@@ -97,7 +101,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="stats">
     <div class="stat"><small>Total Customers</small><h2 id="customerCount">0</h2></div>
     <div class="stat"><small>Pending Follow-ups</small><h2 id="followupCount">0</h2></div>
-    <div class="stat"><small>Interactions</small><h2>—</h2></div>
+    <div class="stat"><small>Interactions</small><h2 id="interactionCount">0</h2></div>
     <div class="stat"><small>Business Growth</small><h2>—</h2></div>
   </div>
   <div class="section-heading"><h2>Recent Customers</h2><button onclick="showPage('customers',document.querySelectorAll('nav button')[1])">View all</button></div>
@@ -140,6 +144,20 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="section-heading"><h2>Your Follow-up Reminders</h2></div>
   <div class="panel" id="followupList"><p class="empty">Loading follow-ups...</p></div>
 </section>
+<section id="interactions" class="page">
+  <div class="welcome"><small>CUSTOMER RELATIONSHIPS</small><h1>Interaction History</h1><p>Keep a record of important conversations, orders, enquiries and customer feedback.</p></div>
+  <div class="panel">
+    <h2>Record an Interaction</h2><p class="empty">Save a note about an interaction with one of your customers.</p>
+    <form id="interactionForm" class="form-box">
+      <label for="interactionCustomer">Choose customer</label><select id="interactionCustomer" required><option value="">Select a customer</option></select>
+      <label for="interactionNote">What happened?</label><textarea id="interactionNote" required maxlength="2000" placeholder="e.g. Called customer about their next order. Customer will confirm tomorrow."></textarea>
+      <button id="saveInteractionBtn" type="submit">Save Interaction</button>
+    </form>
+    <div id="interactionMessage" class="notice" style="display:none" role="status"></div>
+  </div>
+  <div class="section-heading"><h2>Customer Interaction Records</h2></div>
+  <div class="panel" id="interactionList"><p class="empty">Loading interaction history...</p></div>
+</section>
 <section id="about" class="page">
   <div class="welcome"><small>POWERED BY VELOAXIS</small><h1>About VeloCRM</h1><p>VeloCRM is being developed to help businesses manage customers, track interactions and organise follow-ups.</p></div>
   <div class="panel"><h2>Our mission</h2><p style="color:#aaa;margin-top:10px">Make customer management simpler, smarter and more accessible for businesses.</p><p class="tag" style="margin-top:20px">FIRST PRODUCT IN THE VELOAXIS ECOSYSTEM</p></div>
@@ -152,7 +170,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 const VELO_SUPABASE_URL = "https://fvfmtdvzmcrojhdckvhe.supabase.co";
 const VELO_SUPABASE_KEY = "sb_publishable_9wGu3S-3qBJLrBYNAj_mgQ_ARyLUAMS";
 const veloSupabase = window.supabase.createClient(VELO_SUPABASE_URL, VELO_SUPABASE_KEY);
-let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],selectedCustomerId=null,editingCustomer=false;
+let authMode="login",currentUser=null,currentBusiness=null,customers=[],followUps=[],interactions=[],selectedCustomerId=null,editingCustomer=false;
 const authScreen=document.getElementById("authScreen"),appShell=document.getElementById("appShell"),authMessage=document.getElementById("authMessage"),customerDetails=document.getElementById("customerDetails"),customerActionMessage=document.getElementById("customerActionMessage");
 function showMessage(element,message,type){element.textContent=message;element.className="notice "+(type||"");element.style.display="block"}
 function clearMessage(element){element.textContent="";element.style.display="none"}
@@ -165,10 +183,24 @@ document.getElementById("authForm").addEventListener("submit",async function(eve
 });
 async function openWorkspace(user){
  currentUser=user;clearMessage(authMessage);authScreen.style.display="none";appShell.style.display="block";document.getElementById("signOutBtn").style.display="inline-block";
- try{const {data:businesses,error:readError}=await veloSupabase.from("businesses").select("id,name,owner_id").eq("owner_id",user.id).limit(1);if(readError)throw readError;if(businesses&&businesses.length)currentBusiness=businesses[0];else{const businessName=user.user_metadata?.business_name||"My Business";const {data:createdBusiness,error:createError}=await veloSupabase.from("businesses").insert({name:businessName,owner_id:user.id}).select("id,name,owner_id").single();if(createError)throw createError;currentBusiness=createdBusiness}await loadCustomers();await loadFollowUps()}catch(error){document.getElementById("customerList").innerHTML="";showPage("customers",document.querySelectorAll("nav button")[1]);const message=document.createElement("p");message.className="notice error";message.textContent="We signed you in, but could not load your business data: "+(error.message||"Database access error")+". Please tell your VeloAxis setup assistant this exact message.";document.getElementById("customerList").appendChild(message)}
+ try{const {data:businesses,error:readError}=await veloSupabase.from("businesses").select("id,name,owner_id").eq("owner_id",user.id).limit(1);if(readError)throw readError;if(businesses&&businesses.length)currentBusiness=businesses[0];else{const businessName=user.user_metadata?.business_name||"My Business";const {data:createdBusiness,error:createError}=await veloSupabase.from("businesses").insert({name:businessName,owner_id:user.id}).select("id,name,owner_id").single();if(createError)throw createError;currentBusiness=createdBusiness}await loadCustomers();await loadFollowUps();await loadInteractions()}catch(error){document.getElementById("customerList").innerHTML="";showPage("customers",document.querySelectorAll("nav button")[1]);const message=document.createElement("p");message.className="notice error";message.textContent="We signed you in, but could not load your business data: "+(error.message||"Database access error")+". Please tell your VeloAxis setup assistant this exact message.";document.getElementById("customerList").appendChild(message)}
 }
 async function loadCustomers(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("customers").select("id,business_id,name,phone,email,created_at").eq("business_id",currentBusiness.id).order("created_at",{ascending:false});if(error)throw error;customers=data||[];if(selectedCustomerId&&!customers.some(c=>c.id===selectedCustomerId)){selectedCustomerId=null;editingCustomer=false}renderCustomers()}
 async function loadFollowUps(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("follow_ups").select("id,customer_id,note,due_at,status,customers(name)").order("due_at",{ascending:true});if(error)throw error;followUps=data||[];renderFollowUps()}
+async function loadInteractions(){if(!currentBusiness)return;const {data,error}=await veloSupabase.from("interactions").select("id,customer_id,note,created_at,customers(name)").order("created_at",{ascending:false});if(error)throw error;interactions=data||[];renderInteractions()}
+function renderInteractionCustomerOptions(){
+  const select=document.getElementById("interactionCustomer");if(!select)return;const previousValue=select.value;
+  select.innerHTML='<option value="">Select a customer</option>'+customers.map(c=>`<option value="${escapeHTML(c.id)}">${escapeHTML(c.name)}</option>`).join("");
+  if(customers.some(c=>c.id===previousValue))select.value=previousValue;
+  if(!customers.length)select.innerHTML='<option value="">Add a customer first</option>';
+  document.getElementById("saveInteractionBtn").disabled=customers.length===0;
+}
+function renderInteractions(){
+  document.getElementById("interactionCount").textContent=interactions.length;
+  const list=document.getElementById("interactionList");
+  if(!interactions.length){list.innerHTML='<p class="empty">No interaction records yet. Use the form above to record your first customer interaction.</p>';return}
+  list.innerHTML=interactions.map(item=>`<div class="interaction"><strong>${escapeHTML(item.customers?.name||"Customer")}</strong><p>${escapeHTML(item.note)}</p><p class="tag">Recorded: ${escapeHTML(formatDate(item.created_at))}</p></div>`).join("");
+}
 function escapeHTML(value){return String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]))}
 function formatDate(value){const date=new Date(value);return Number.isNaN(date.getTime())?"Date unavailable":date.toLocaleString()}
 function renderCustomers(){
@@ -205,6 +237,17 @@ document.getElementById("customerForm").addEventListener("submit",async function
  event.preventDefault();const message=document.getElementById("customerMessage"),button=document.getElementById("saveCustomerBtn");clearMessage(message);if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please sign out and log in again.","error");return}button.disabled=true;button.textContent="Saving...";
  try{const newCustomer={business_id:currentBusiness.id,name:document.getElementById("name").value.trim(),phone:document.getElementById("phone").value.trim()||null,email:document.getElementById("email").value.trim()||null};const {error}=await veloSupabase.from("customers").insert(newCustomer);if(error)throw error;this.reset();selectedCustomerId=null;editingCustomer=false;await loadCustomers();clearMessage(message);showPage("customers",document.querySelectorAll("nav button")[1])}catch(error){showMessage(message,error.message||"Could not save this customer.","error")}finally{button.disabled=false;button.textContent="Save Customer"}
 });
+document.getElementById("interactionForm").addEventListener("submit",async function(event){
+  event.preventDefault();const message=document.getElementById("interactionMessage"),button=document.getElementById("saveInteractionBtn");clearMessage(message);
+  if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please log in again.","error");return}
+  const customerId=document.getElementById("interactionCustomer").value,note=document.getElementById("interactionNote").value.trim();
+  if(!customerId||!customers.some(c=>c.id===customerId)){showMessage(message,"Please choose one of your saved customers.","error");return}
+  if(!note){showMessage(message,"Please describe the interaction.","error");return}
+  button.disabled=true;button.textContent="Saving...";
+  try{const {error}=await veloSupabase.from("interactions").insert({customer_id:customerId,note});if(error)throw error;this.reset();await loadInteractions();showMessage(message,"Interaction saved successfully.","success")}
+  catch(error){showMessage(message,error.message||"Could not save this interaction.","error")}
+  finally{button.disabled=customers.length===0;button.textContent="Save Interaction"}
+});
 document.getElementById("followupForm").addEventListener("submit",async function(event){
  event.preventDefault();const message=document.getElementById("followupMessage"),button=document.getElementById("saveFollowupBtn");clearMessage(message);if(!currentBusiness){showMessage(message,"Your business workspace is not ready. Please log in again.","error");return}
  const customerId=document.getElementById("followupCustomer").value,note=document.getElementById("followupNote").value.trim(),dueValue=document.getElementById("followupDue").value;
@@ -219,13 +262,13 @@ document.getElementById("followupList").addEventListener("click",async event=>{
 });
 function showPage(id,button){
  document.querySelectorAll(".page").forEach(page=>page.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(navButton=>navButton.classList.remove("active"));if(button)button.classList.add("active");
- if(id==="followups"&&currentBusiness){renderFollowupCustomerOptions();loadFollowUps().catch(error=>showMessage(document.getElementById("followupMessage"),error.message||"Could not load follow-ups.","error"))}
+ if(id==="followups"&&currentBusiness){renderFollowupCustomerOptions();loadFollowUps().catch(error=>showMessage(document.getElementById("followupMessage"),error.message||"Could not load follow-ups.","error"))}if(id==="interactions"&&currentBusiness){renderInteractionCustomerOptions();loadInteractions().catch(error=>showMessage(document.getElementById("interactionMessage"),error.message||"Could not load interaction history.","error"))}
 }
 document.getElementById("signOutBtn").addEventListener("click",async function(){
- this.disabled=true;const {error}=await veloSupabase.auth.signOut();this.disabled=false;if(error){alert("Could not sign out: "+error.message);return}currentUser=null;currentBusiness=null;customers=[];followUps=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";document.getElementById("authForm").reset();setAuthMode("login")
+ this.disabled=true;const {error}=await veloSupabase.auth.signOut();this.disabled=false;if(error){alert("Could not sign out: "+error.message);return}currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";document.getElementById("authForm").reset();setAuthMode("login")
 });
 async function startApp(){const {data,error}=await veloSupabase.auth.getSession();if(error){showMessage(authMessage,error.message,"error");return}if(data.session?.user)await openWorkspace(data.session.user)}
-veloSupabase.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;customers=[];followUps=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none"}});
+veloSupabase.auth.onAuthStateChange((event,session)=>{if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none"}});
 startApp();
 </script>
 </body>
