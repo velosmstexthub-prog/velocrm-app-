@@ -869,6 +869,18 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
     </div>
     <div class="about-ecosystem-stamp">FIRST<br>PRODUCT</div>
   </div>
+
+  <div class="section-heading"><h2>Data Backup &amp; Restore</h2></div>
+  <div class="panel" id="backupPanel">
+    <p class="empty">Protect your VeloCRM workspace by downloading a backup of your business profile, customers, follow-ups and interaction history. Restore only accepts a backup created for this same account and business.</p>
+    <div class="detail-actions">
+      <button type="button" id="downloadBackupBtn">Download Full Backup</button>
+      <button type="button" id="chooseRestoreBtn" class="secondary">Restore from Backup</button>
+    </div>
+    <input type="file" id="restoreBackupFile" accept=".json,application/json" hidden>
+    <p id="backupMessage" class="notice" style="display:none" role="status" aria-live="polite"></p>
+    <p class="empty" style="margin-top:10px">Restore adds records that are missing. It does not overwrite records already in your workspace or delete existing data. Keep your downloaded backup somewhere safe.</p>
+  </div>
 </section>
 </main>
 </div>
@@ -1067,6 +1079,90 @@ followupCustomerMenu.addEventListener("keydown",event=>{const options=Array.from
 document.addEventListener("click",event=>{if(followupCustomerWrap&&!followupCustomerWrap.contains(event.target))closeFollowupCustomerMenu()});
 followupCustomerWrap.addEventListener("focusout",event=>{if(!followupCustomerWrap.contains(event.relatedTarget))closeFollowupCustomerMenu()});
 followupCustomerSelect.addEventListener("change",syncFollowupCustomerPicker);
+// Full workspace backup and safe, non-overwriting restore.
+const BACKUP_FORMAT="velocrm-workspace-backup";
+const BACKUP_VERSION=1;
+const BACKUP_PAGE_SIZE=500;
+async function fetchAllBackupRows(table,buildQuery){
+ const rows=[];
+ for(let offset=0;;offset+=BACKUP_PAGE_SIZE){
+  const {data,error}=await buildQuery(veloSupabase.from(table).select("*")).order("id",{ascending:true}).range(offset,offset+BACKUP_PAGE_SIZE-1);
+  if(error)throw error;
+  const batch=data||[];rows.push(...batch);
+  if(batch.length<BACKUP_PAGE_SIZE)break;
+ }
+ return rows;
+}
+async function collectWorkspaceBackup(){
+ if(!currentUser||!currentBusiness)throw new Error("Please log in before creating a backup.");
+ const {data:business,error:businessError}=await veloSupabase.from("businesses").select("*").eq("id",currentBusiness.id).eq("owner_id",currentUser.id).single();
+ if(businessError)throw businessError;
+ const backupCustomers=await fetchAllBackupRows("customers",query=>query.eq("business_id",currentBusiness.id));
+ const customerIds=backupCustomers.map(customer=>customer.id).filter(Boolean);
+ const backupFollowUps=[],backupInteractions=[];
+ for(let index=0;index<customerIds.length;index+=100){
+  const ids=customerIds.slice(index,index+100);
+  const [followupRows,interactionRows]=await Promise.all([
+   fetchAllBackupRows("follow_ups",query=>query.in("customer_id",ids)),
+   fetchAllBackupRows("interactions",query=>query.in("customer_id",ids))
+  ]);
+  backupFollowUps.push(...followupRows);backupInteractions.push(...interactionRows);
+ }
+ return {format:BACKUP_FORMAT,version:BACKUP_VERSION,app:"VeloCRM",exported_at:new Date().toISOString(),account_id:currentUser.id,business,customers:backupCustomers,follow_ups:backupFollowUps,interactions:backupInteractions};
+}
+function validateWorkspaceBackup(backup){
+ if(!backup||typeof backup!=="object"||backup.format!==BACKUP_FORMAT||backup.version!==BACKUP_VERSION)throw new Error("This file is not a supported VeloCRM workspace backup.");
+ if(!backup.business||backup.business.id!==currentBusiness?.id||backup.business.owner_id!==currentUser?.id||backup.account_id!==currentUser?.id)throw new Error("This backup belongs to a different account or business. Sign in to the original account to restore it.");
+ for(const key of ["customers","follow_ups","interactions"]){if(!Array.isArray(backup[key]))throw new Error("The backup is incomplete: "+key+" data is missing.");if(backup[key].length>50000)throw new Error("This backup contains too many records to restore safely.");}
+ const customerIds=new Set();
+ for(const customer of backup.customers){if(!customer||typeof customer.id!=="string"||!customer.id||customer.business_id!==backup.business.id||typeof customer.name!=="string"||!customer.name.trim())throw new Error("The backup contains an invalid customer record.");if(customerIds.has(customer.id))throw new Error("The backup contains duplicate customer IDs.");customerIds.add(customer.id)}
+ for(const key of ["follow_ups","interactions"]){const seen=new Set();for(const record of backup[key]){if(!record||typeof record.id!=="string"||!record.id||typeof record.customer_id!=="string"||!customerIds.has(record.customer_id))throw new Error("The backup contains an invalid "+key.replace("_"," ")+" record or a missing customer link.");if(seen.has(record.id))throw new Error("The backup contains duplicate record IDs.");seen.add(record.id)}}
+}
+async function insertBackupRows(table,rows){
+ let inserted=0;
+ for(let index=0;index<rows.length;index+=100){
+  const batch=rows.slice(index,index+100);
+  const {error}=await veloSupabase.from(table).upsert(batch,{onConflict:"id",ignoreDuplicates:true});
+  if(error)throw error;
+  inserted+=batch.length;
+ }
+ return inserted;
+}
+const backupMessage=document.getElementById("backupMessage");
+document.getElementById("downloadBackupBtn").addEventListener("click",async function(){
+ const button=this;clearMessage(backupMessage);button.disabled=true;button.textContent="Preparing Backup...";
+ try{
+  const backup=await collectWorkspaceBackup();
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob),link=document.createElement("a");
+  link.href=url;link.download="veloCRM-full-backup-"+new Date().toISOString().slice(0,10)+".json";document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+  showMessage(backupMessage,"Full backup downloaded: "+backup.customers.length+" customers, "+backup.follow_ups.length+" follow-ups and "+backup.interactions.length+" interactions.","success");
+ }catch(error){showMessage(backupMessage,error.message||"Could not create your backup.","error")}
+ finally{button.disabled=false;button.textContent="Download Full Backup"}
+});
+document.getElementById("chooseRestoreBtn").addEventListener("click",()=>document.getElementById("restoreBackupFile").click());
+document.getElementById("restoreBackupFile").addEventListener("change",async function(){
+ const file=this.files?.[0];if(!file)return;clearMessage(backupMessage);
+ try{
+  if(file.size>25*1024*1024)throw new Error("This backup is larger than 25 MB. Please use a smaller backup file.");
+  const backup=JSON.parse(await file.text());validateWorkspaceBackup(backup);
+  const total=backup.customers.length+backup.follow_ups.length+backup.interactions.length;
+  if(!total){showMessage(backupMessage,"This backup contains no customer, follow-up or interaction records to restore.","error");return}
+  const confirmed=await confirmVeloCRM({title:"Restore this VeloCRM backup?",message:"The backup contains "+backup.customers.length+" customers, "+backup.follow_ups.length+" follow-ups and "+backup.interactions.length+" interactions. Missing records will be added. Existing records will not be overwritten or deleted.",confirmText:"Restore backup"});
+  if(!confirmed)return;
+  const button=document.getElementById("chooseRestoreBtn"),downloadButton=document.getElementById("downloadBackupBtn");button.disabled=true;downloadButton.disabled=true;button.textContent="Restoring...";
+  try{
+   await insertBackupRows("customers",backup.customers);
+   await insertBackupRows("follow_ups",backup.follow_ups);
+   await insertBackupRows("interactions",backup.interactions);
+   await loadCustomers();await loadFollowUps();await loadInteractions();
+   showMessage(backupMessage,"Restore completed. Missing records from the backup have been added. Existing records were left unchanged.","success");
+  }catch(error){showMessage(backupMessage,"Restore stopped before all records could be added: "+(error.message||"Database error")+". You can safely try the same backup again; records already restored will be skipped.","error")}
+  finally{button.disabled=false;downloadButton.disabled=false;button.textContent="Restore from Backup"}
+ }catch(error){showMessage(backupMessage,error.message||"Could not read this backup file.","error")}
+ finally{this.value=""}
+});
+
 function csvCell(value){
  let text=String(value??"");
  if(/^[\s]*[=+@\-]/.test(text))text="'"+text;
