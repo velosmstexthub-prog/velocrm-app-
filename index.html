@@ -664,6 +664,20 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .about-ecosystem-stamp{flex:0 0 76px;width:76px;height:76px;display:grid;place-content:center;text-align:center;border:1px solid #777;border-radius:50%;color:#ddd;font-size:10px;font-weight:bold;letter-spacing:1.5px;line-height:1.5}
 @media(max-width:560px){.about-hero{padding:22px 18px}.about-feature-grid,.about-mission-grid{grid-template-columns:1fr}.about-feature{padding:15px}.about-ecosystem{align-items:flex-start;padding:18px}.about-ecosystem-stamp{flex-basis:62px;width:62px;height:62px;font-size:9px}.about-ecosystem h2{font-size:18px}}
 
+
+/* Notification preferences */
+.notification-panel{max-width:720px;margin-bottom:14px}
+.notification-panel h2{font-size:18px;margin-bottom:6px}
+.notification-form{max-width:560px}
+.notification-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;margin:0 0 10px;border-bottom:1px solid #303030;color:#eee;cursor:pointer}
+.notification-toggle span{display:block;min-width:0}
+.notification-toggle strong{display:block;font-size:14px;color:#eee}
+.notification-toggle small{display:block;margin-top:4px;color:#999;font-size:12px;line-height:1.5}
+.notification-toggle input[type="checkbox"]{flex:0 0 22px;width:22px;height:22px;margin:0;accent-color:#c0c0c0;cursor:pointer}
+.notification-disabled{opacity:.55;cursor:not-allowed}
+.notification-disabled input{cursor:not-allowed}
+#notifications select{max-width:100%;min-height:46px}
+@media(max-width:520px){.notification-panel{padding:16px}.notification-toggle{align-items:flex-start}.notification-toggle input[type="checkbox"]{margin-top:3px}}
 </style>
 </head>
 <body>
@@ -706,6 +720,7 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <button onclick="showPage('addCustomer',null)">Add Customer</button>
   <button onclick="showPage('followups',this)">Follow-ups</button>
   <button onclick="showPage('interactions',this)">Interactions</button>
+  <button onclick="showPage('notifications',this)">Notifications</button>
   <button onclick="showPage('about',this)">About</button>
 </nav>
 <main>
@@ -837,6 +852,34 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
   <div class="section-heading"><h2>Customer Interaction Records</h2></div>
   <div class="panel" id="interactionList"><p class="empty">Loading interaction history...</p></div>
 </section>
+<section id="notifications" class="page">
+  <div class="welcome"><small>WORKSPACE SETTINGS</small><h1>Notification Preferences</h1><p>Choose how and when VeloCRM should remind you about customer follow-ups.</p></div>
+  <div class="panel notification-panel">
+    <h2>Email reminders</h2>
+    <p class="empty">Turn this on only if you want VeloCRM to send reminder emails to the email address on your account. Email delivery is being prepared and will not start until the service is configured.</p>
+    <form id="notificationPreferencesForm" class="form-box notification-form">
+      <label class="notification-toggle" for="emailRemindersEnabled"><span><strong>Enable email reminders</strong><small>I agree to receive follow-up reminder emails from VeloCRM.</small></span><input id="emailRemindersEnabled" type="checkbox"></label>
+      <label for="minutesBeforeDue">Reminder before a follow-up is due</label>
+      <select id="minutesBeforeDue">
+        <option value="5">5 minutes before</option>
+        <option value="10">10 minutes before</option>
+        <option value="15">15 minutes before</option>
+        <option value="30">30 minutes before</option>
+        <option value="60">1 hour before</option>
+      </select>
+      <label class="notification-toggle" for="atDueEnabled"><span><strong>Reminder when due</strong><small>Send a reminder when the scheduled time arrives.</small></span><input id="atDueEnabled" type="checkbox"></label>
+      <label class="notification-toggle" for="overdueEnabled"><span><strong>Overdue reminder</strong><small>Send a reminder if the follow-up remains incomplete after it is due.</small></span><input id="overdueEnabled" type="checkbox"></label>
+      <div class="detail-actions"><button id="saveNotificationPreferencesBtn" type="submit">Save Preferences</button></div>
+    </form>
+    <p id="notificationPreferencesMessage" class="notice" style="display:none" role="status" aria-live="polite"></p>
+  </div>
+  <div class="panel notification-panel" style="margin-top:14px">
+    <h2>Android push notifications</h2>
+    <p class="empty">Push notifications are not available yet. We'll add Android device setup in a later release.</p>
+    <label class="notification-toggle notification-disabled"><span><strong>Enable push notifications</strong><small>Coming soon.</small></span><input type="checkbox" disabled></label>
+  </div>
+</section>
+
 <section id="about" class="page">
   <div class="about-hero">
     <div class="about-eyebrow">POWERED BY VELOAXIS</div>
@@ -1415,9 +1458,45 @@ document.getElementById("followupList").addEventListener("click",async event=>{
  const button=event.target.closest("[data-followup-action]");if(!button)return;const action=button.dataset.followupAction,followup=followUps.find(f=>f.id===button.dataset.id);if(!followup)return;if(action==="delete"&&!await confirmVeloCRM({title:"Delete this follow-up?",message:"This follow-up reminder will be permanently deleted. This action cannot be undone.",confirmText:"Delete reminder"}))return;button.disabled=true;
  try{let request;if(action==="complete")request=await veloSupabase.from("follow_ups").update({status:"completed"}).eq("id",followup.id).eq("customer_id",followup.customer_id);else if(action==="delete")request=await veloSupabase.from("follow_ups").delete().eq("id",followup.id).eq("customer_id",followup.customer_id);else return;if(request.error)throw request.error;await loadFollowUps();showMessage(document.getElementById("followupMessage"),action==="complete"?"Follow-up marked as completed.":"Follow-up deleted.","success")}catch(error){showMessage(document.getElementById("followupMessage"),error.message||"Could not update this follow-up.","error");button.disabled=false}
 });
+async function loadNotificationPreferences(){
+ const message=document.getElementById("notificationPreferencesMessage");
+ if(!currentUser)return;
+ clearMessage(message);
+ const form=document.getElementById("notificationPreferencesForm");
+ const saveButton=document.getElementById("saveNotificationPreferencesBtn");
+ form.querySelectorAll("input,select,button").forEach(control=>control.disabled=true);
+ try{
+  let {data,error}=await veloSupabase.from("notification_preferences").select("email_enabled,minutes_before_due,at_due_enabled,overdue_enabled").eq("user_id",currentUser.id).maybeSingle();
+  if(error)throw error;
+  if(!data){
+   const created=await veloSupabase.from("notification_preferences").insert({user_id:currentUser.id}).select("email_enabled,minutes_before_due,at_due_enabled,overdue_enabled").single();
+   if(created.error)throw created.error;
+   data=created.data;
+  }
+  document.getElementById("emailRemindersEnabled").checked=Boolean(data.email_enabled);
+  document.getElementById("minutesBeforeDue").value=String(data.minutes_before_due??10);
+  document.getElementById("atDueEnabled").checked=data.at_due_enabled!==false;
+  document.getElementById("overdueEnabled").checked=data.overdue_enabled!==false;
+ }catch(error){showMessage(message,error.message||"Could not load notification preferences.","error")}
+ finally{form.querySelectorAll("input,select,button").forEach(control=>control.disabled=false);}
+}
+document.getElementById("notificationPreferencesForm").addEventListener("submit",async function(event){
+ event.preventDefault();
+ const message=document.getElementById("notificationPreferencesMessage"),button=document.getElementById("saveNotificationPreferencesBtn");
+ if(!currentUser){showMessage(message,"Please log in to save notification preferences.","error");return}
+ const preferences={email_enabled:document.getElementById("emailRemindersEnabled").checked,minutes_before_due:Number(document.getElementById("minutesBeforeDue").value),at_due_enabled:document.getElementById("atDueEnabled").checked,overdue_enabled:document.getElementById("overdueEnabled").checked};
+ if(![5,10,15,30,60].includes(preferences.minutes_before_due)){showMessage(message,"Choose a valid reminder interval.","error");return}
+ button.disabled=true;button.textContent="Saving...";clearMessage(message);
+ try{
+  const {error}=await veloSupabase.from("notification_preferences").update(preferences).eq("user_id",currentUser.id);
+  if(error)throw error;
+  showMessage(message,preferences.email_enabled?"Preferences saved. Email reminders are enabled in your settings, but delivery will begin only after the email service is activated.":"Preferences saved. Email reminders remain off.","success");
+ }catch(error){showMessage(message,error.message||"Could not save notification preferences.","error")}
+ finally{button.disabled=false;button.textContent="Save Preferences"}
+});
 function showPage(id,button){
  document.querySelectorAll(".page").forEach(page=>page.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll("nav button").forEach(navButton=>navButton.classList.remove("active"));if(button)button.classList.add("active");
- if(id==="followups"&&currentBusiness){renderFollowupCustomerOptions();loadFollowUps().catch(error=>showMessage(document.getElementById("followupMessage"),error.message||"Could not load follow-ups.","error"))}if(id==="interactions"&&currentBusiness){renderInteractionCustomerOptions();loadInteractions().catch(error=>showMessage(document.getElementById("interactionMessage"),error.message||"Could not load interaction history.","error"))}
+ if(id==="followups"&&currentBusiness){renderFollowupCustomerOptions();loadFollowUps().catch(error=>showMessage(document.getElementById("followupMessage"),error.message||"Could not load follow-ups.","error"))}if(id==="interactions"&&currentBusiness){renderInteractionCustomerOptions();loadInteractions().catch(error=>showMessage(document.getElementById("interactionMessage"),error.message||"Could not load interaction history.","error"))}if(id==="notifications"&&currentUser){loadNotificationPreferences()}
 }
 document.getElementById("signOutBtn").addEventListener("click",async function(){
  this.disabled=true;const {error}=await veloSupabase.auth.signOut();this.disabled=false;if(error){alert("Could not sign out: "+error.message);return}currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;editingInteractionId=null;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";document.getElementById("authForm").reset();setAuthMode("login")
