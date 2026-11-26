@@ -119,6 +119,17 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .customer-profile-summary{margin-top:22px;padding-top:18px;border-top:1px solid #303030}
 .customer-profile-summary h3{font-size:17px;margin-bottom:5px}
 .customer-summary-intro{color:#999;font-size:12px;margin-bottom:14px}
+.customer-profile-highlights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}
+.customer-profile-highlight:first-child{grid-column:1/-1}
+@media(min-width:700px){.customer-profile-highlights{grid-template-columns:repeat(3,minmax(0,1fr))}.customer-profile-highlight:first-child{grid-column:auto}}
+.customer-profile-highlight{min-width:0;padding:12px;border:1px solid #353535;border-radius:7px;background:#101010}
+.customer-profile-highlight>span{display:block;color:#999;font-size:10px;line-height:1.4;text-transform:uppercase;letter-spacing:.7px}
+.customer-profile-highlight strong{display:block;margin-top:6px;color:#eee;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.customer-status-badge{display:inline-flex;align-items:center;width:max-content;max-width:100%;padding:4px 9px;border:1px solid #666;border-radius:20px;font-size:11px;font-weight:700}
+.customer-status-active{border-color:#547b5c;color:#bfe8c6}
+.customer-status-followup{border-color:#9b5555;color:#ffbaba}
+.customer-status-inactive{border-color:#777;color:#ccc}
+.customer-profile-highlight small{display:block;margin-top:4px;color:#888;font-size:10px;line-height:1.4}
 .customer-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .customer-summary-stat{background:#101010;border:1px solid #303030;border-radius:6px;padding:12px}
 .customer-summary-stat span{display:block;color:#999;font-size:11px}
@@ -1371,20 +1382,41 @@ document.querySelector("#followups .section-heading").addEventListener("click",e
  heading.dataset.filter=button.dataset.followupFilter;
  renderFollowUps();
 });
-function renderCustomerSummary(customerId){
+function getCustomerProfileActivity(customerId){
+ const now=Date.now();
+ const thirtyDays=30*24*60*60*1000;
  const customerInteractions=interactions.filter(item=>item.customer_id===customerId);
  const customerFollowUps=followUps.filter(item=>item.customer_id===customerId);
  const pendingFollowUps=customerFollowUps.filter(item=>(item.status||"pending").toLowerCase()!=="completed");
  const completedFollowUps=customerFollowUps.filter(item=>(item.status||"pending").toLowerCase()==="completed");
- return `<section class="customer-profile-summary"><h3>Customer Profile Summary</h3><p class="customer-summary-intro">A quick overview of this customer's activity and follow-ups.</p><div class="customer-summary-grid"><div class="customer-summary-stat"><span>Total Interactions</span><strong>${customerInteractions.length}</strong></div><div class="customer-summary-stat"><span>Pending Follow-ups</span><strong>${pendingFollowUps.length}</strong></div><div class="customer-summary-stat"><span>Completed Follow-ups</span><strong>${completedFollowUps.length}</strong></div><div class="customer-summary-stat"><span>Total Follow-ups</span><strong>${customerFollowUps.length}</strong></div></div></section>`;
+ const lastInteraction=customerInteractions.map(item=>({item,time:new Date(item.created_at).getTime()})).filter(entry=>Number.isFinite(entry.time)).sort((a,b)=>b.time-a.time)[0]||null;
+ const overdueFollowUps=pendingFollowUps.filter(item=>{const due=new Date(item.due_at).getTime();return Number.isFinite(due)&&due<now;});
+ const nextPendingFollowUp=pendingFollowUps.map(item=>({item,time:new Date(item.due_at).getTime()})).filter(entry=>Number.isFinite(entry.time)).sort((a,b)=>a.time-b.time)[0]||null;
+ let status="Inactive",statusClass="customer-status-inactive";
+ if(overdueFollowUps.length){status="Needs Follow-up";statusClass="customer-status-followup";}
+ else if(lastInteraction&&now-lastInteraction.time<=thirtyDays){status="Active";statusClass="customer-status-active";}
+ return {customerInteractions,customerFollowUps,pendingFollowUps,completedFollowUps,lastInteraction,nextPendingFollowUp,status,statusClass};
+}
+function renderCustomerSummary(customerId){
+ const activity=getCustomerProfileActivity(customerId);
+ const lastInteractionLabel=activity.lastInteraction?formatDate(activity.lastInteraction.item.created_at):"No interaction recorded";
+ let nextFollowUpLabel="None scheduled";
+ let nextFollowUpNote="";
+ if(activity.nextPendingFollowUp){
+  const dueTime=activity.nextPendingFollowUp.time;
+  nextFollowUpLabel=formatDate(activity.nextPendingFollowUp.item.due_at);
+  nextFollowUpNote=dueTime<Date.now()?"Overdue — attention needed":"Pending reminder";
+ }
+ return `<section class="customer-profile-summary"><h3>Customer Profile Summary</h3><p class="customer-summary-intro">A quick overview of this customer's relationship, activity and follow-ups.</p><div class="customer-profile-highlights"><div class="customer-profile-highlight"><span>Customer status</span><strong><span class="customer-status-badge ${activity.statusClass}">${activity.status}</span></strong><small>${activity.status==="Active"?"Interaction within the last 30 days":activity.status==="Needs Follow-up"?"At least one reminder is overdue":"No interaction in the last 30 days"}</small></div><div class="customer-profile-highlight"><span>Last interaction</span><strong>${escapeHTML(lastInteractionLabel)}</strong></div><div class="customer-profile-highlight"><span>Next pending follow-up</span><strong>${escapeHTML(nextFollowUpLabel)}</strong>${nextFollowUpNote?`<small>${escapeHTML(nextFollowUpNote)}</small>`:""}</div></div><div class="customer-summary-grid"><div class="customer-summary-stat"><span>Total Interactions</span><strong>${activity.customerInteractions.length}</strong></div><div class="customer-summary-stat"><span>Pending Follow-ups</span><strong>${activity.pendingFollowUps.length}</strong></div><div class="customer-summary-stat"><span>Completed Follow-ups</span><strong>${activity.completedFollowUps.length}</strong></div><div class="customer-summary-stat"><span>Total Follow-ups</span><strong>${activity.customerFollowUps.length}</strong></div></div></section>`;
 }
 function renderCustomerTimeline(customerId){
+ const now=Date.now();
  const events=[
-  ...interactions.filter(item=>item.customer_id===customerId).map(item=>({type:"interaction",title:"Interaction · "+interactionChannelLabel(item.channel||"other"),note:item.note,date:item.created_at})),
-  ...followUps.filter(item=>item.customer_id===customerId).map(item=>({type:"followup",title:"Follow-up · "+((item.status||"pending").toLowerCase()==="completed"?"Completed":"Pending"),note:item.note,date:item.due_at}))
+  ...interactions.filter(item=>item.customer_id===customerId).map(item=>({type:"interaction",title:"Interaction · "+interactionChannelLabel(item.channel||"other"),note:item.note,date:item.created_at,dateLabel:"Recorded"})),
+  ...followUps.filter(item=>item.customer_id===customerId).map(item=>{const completed=(item.status||"pending").toLowerCase()==="completed",dueTime=new Date(item.due_at).getTime(),overdue=!completed&&Number.isFinite(dueTime)&&dueTime<now;return {type:"followup",title:"Follow-up · "+(completed?"Completed":overdue?"Overdue":"Pending"),note:item.note,date:item.due_at,dateLabel:"Due"};})
  ].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime());
- if(!events.length)return '<section class="activity-timeline"><h3>Customer Activity Timeline</h3><p class="activity-timeline-intro">Interactions and follow-up reminders for this customer.</p><p class="empty">No activity recorded for this customer yet.</p></section>';
- return '<section class="activity-timeline"><h3>Customer Activity Timeline</h3><p class="activity-timeline-intro">Interactions and follow-up reminders for this customer, newest first.</p>'+events.map(event=>`<div class="timeline-item"><strong>${escapeHTML(event.title)}</strong><p>${escapeHTML(event.note)}</p><span class="tag">${escapeHTML(formatDate(event.date))}</span></div>`).join('')+'</section>';
+ if(!events.length)return '<section class="activity-timeline"><h3>Customer Activity Timeline</h3><p class="activity-timeline-intro">Recorded interactions and scheduled follow-ups for this customer.</p><p class="empty">No activity recorded for this customer yet.</p></section>';
+ return '<section class="activity-timeline"><h3>Customer Activity Timeline</h3><p class="activity-timeline-intro">Interactions are dated when recorded; follow-ups are dated by their scheduled due time.</p>'+events.map(event=>`<div class="timeline-item"><strong>${escapeHTML(event.title)}</strong><p>${escapeHTML(event.note)}</p><span class="tag">${escapeHTML(event.dateLabel)}: ${escapeHTML(formatDate(event.date))}</span></div>`).join('')+'</section>';
 }
 function whatsappChatUrl(phone){
  let digits=String(phone||"").replace(/\\D/g,"");
