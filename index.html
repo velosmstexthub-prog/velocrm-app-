@@ -689,6 +689,59 @@ footer{padding:25px;text-align:center;border-top:1px solid #292929;color:#777;fo
 .notification-disabled input{cursor:not-allowed}
 #notifications select{max-width:100%;min-height:46px}
 @media(max-width:520px){.notification-panel{padding:16px}.notification-toggle{align-items:flex-start}.notification-toggle input[type="checkbox"]{margin-top:3px}}
+
+/* VeloAxis control styling */
+:root { color-scheme: dark; }
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  background:#171717; color:#ededed; border:1px solid #505050; border-radius:8px;
+}
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline:2px solid #aaa; outline-offset:2px;
+}
+input[type="checkbox"] {
+  appearance:none; -webkit-appearance:none; width:42px; min-width:42px; height:24px;
+  border:1px solid #666; border-radius:999px; background:#292929; position:relative;
+  cursor:pointer; vertical-align:middle; transition:background .18s,border-color .18s;
+}
+input[type="checkbox"]::after {
+  content:""; position:absolute; width:16px; height:16px; left:3px; top:3px;
+  border-radius:50%; background:#c8c8c8; transition:transform .18s;
+}
+input[type="checkbox"]:checked { background:#777; border-color:#c5c5c5; }
+input[type="checkbox"]:checked::after { transform:translateX(18px); background:#fff; }
+input[type="checkbox"]:disabled { opacity:.45; cursor:not-allowed; }
+.branded-select-native {
+  position:absolute!important; width:1px!important; height:1px!important; padding:0!important;
+  margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important;
+  white-space:nowrap!important; border:0!important;
+}
+.branded-select { position:relative; width:100%; margin:7px 0 14px; }
+.branded-select-trigger {
+  width:100%; min-height:46px; padding:12px 14px; display:flex; align-items:center;
+  justify-content:space-between; gap:12px; border:1px solid #505050; border-radius:9px;
+  background:linear-gradient(145deg,#202020,#111); color:#eee; text-align:left;
+  font:inherit; cursor:pointer;
+}
+.branded-select-trigger:disabled { opacity:.5; cursor:not-allowed; }
+.branded-select-chevron {
+  width:9px; height:9px; flex:0 0 auto; border-right:2px solid #bbb;
+  border-bottom:2px solid #bbb; transform:rotate(45deg) translateY(-2px);
+}
+.branded-select-menu {
+  position:absolute; z-index:10000; left:0; right:0; top:calc(100% + 5px);
+  max-height:250px; overflow:auto; padding:5px; border:1px solid #555;
+  border-radius:10px; background:linear-gradient(160deg,#252525,#101010);
+  box-shadow:0 14px 34px rgba(0,0,0,.6);
+}
+.branded-select-menu[hidden] { display:none; }
+.branded-select-option {
+  display:block; width:100%; min-height:43px; padding:10px 12px; border:0;
+  border-radius:6px; background:transparent; color:#ddd; text-align:left; font:inherit;
+}
+.branded-select-option:hover,.branded-select-option:focus-visible { background:#383838; color:#fff; }
+.branded-select-option[aria-selected="true"] { background:#353535; color:#fff; }
+.branded-select-option[aria-selected="true"]::after { content:"✓"; float:right; color:#ccc; }
+
 </style>
 </head>
 <body>
@@ -1536,6 +1589,93 @@ document.getElementById("signOutBtn").addEventListener("click",async function(){
 async function startApp(){const {data,error}=await veloSupabase.auth.getSession();if(error){showMessage(authMessage,"We couldn't check your sign-in session. Refresh the page and try again.","error");return}if(data.session?.user&&!recoveryMode)await openWorkspace(data.session.user)}
 veloSupabase.auth.onAuthStateChange((event,session)=>{if(event==="PASSWORD_RECOVERY"){showNewPasswordScreen();return}if(event==="SIGNED_OUT"){currentUser=null;currentBusiness=null;customers=[];followUps=[];interactions=[];selectedCustomerId=null;editingCustomer=false;editingInteractionId=null;appShell.style.display="none";authScreen.style.display="block";document.getElementById("signOutBtn").style.display="none";if(authView!=="reset")setAuthMode("login")}});
 startApp();
+</script>
+<script>
+
+/* Branded dropdown layer. Original select elements remain authoritative for app logic. */
+(function () {
+  const excluded = new Set(["customerFilter","followupCustomer","interactionCustomer"]);
+  function enhance(select) {
+    if (!select || select.dataset.brandedSelectReady === "1" || excluded.has(select.id)) return;
+    select.dataset.brandedSelectReady = "1";
+    select.classList.add("branded-select-native");
+    const wrap = document.createElement("div");
+    wrap.className = "branded-select";
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "branded-select-trigger";
+    trigger.setAttribute("aria-haspopup","listbox");
+    trigger.setAttribute("aria-expanded","false");
+    const value = document.createElement("span");
+    const arrow = document.createElement("span");
+    arrow.className = "branded-select-chevron";
+    arrow.setAttribute("aria-hidden","true");
+    trigger.append(value,arrow);
+    const menu = document.createElement("div");
+    menu.className = "branded-select-menu";
+    menu.setAttribute("role","listbox");
+    menu.hidden = true;
+
+    function close() {
+      menu.hidden = true;
+      trigger.setAttribute("aria-expanded","false");
+    }
+    function render() {
+      value.textContent = select.selectedOptions[0]?.textContent?.trim() || "Choose an option";
+      trigger.disabled = select.disabled;
+      menu.replaceChildren();
+      Array.from(select.options).forEach(option => {
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "branded-select-option";
+        item.setAttribute("role","option");
+        item.setAttribute("aria-selected",String(option.selected));
+        item.disabled = option.disabled;
+        item.textContent = option.textContent.trim();
+        item.addEventListener("click",() => {
+          if (option.disabled) return;
+          select.value = option.value;
+          select.dispatchEvent(new Event("change",{bubbles:true}));
+          render();
+          close();
+        });
+        menu.appendChild(item);
+      });
+    }
+    trigger.addEventListener("click",() => {
+      const opening = menu.hidden;
+      document.querySelectorAll(".branded-select-menu").forEach(m => m.hidden = true);
+      document.querySelectorAll(".branded-select-trigger").forEach(b => b.setAttribute("aria-expanded","false"));
+      menu.hidden = !opening;
+      trigger.setAttribute("aria-expanded",String(opening));
+    });
+    select.addEventListener("change",render);
+    select.insertAdjacentElement("afterend",wrap);
+    wrap.append(trigger,menu);
+    render();
+  }
+  function scan(root) {
+    if (root.matches?.("select")) enhance(root);
+    root.querySelectorAll?.("select").forEach(enhance);
+  }
+  document.addEventListener("click",event => {
+    if (!event.target.closest(".branded-select")) {
+      document.querySelectorAll(".branded-select-menu").forEach(m => m.hidden = true);
+      document.querySelectorAll(".branded-select-trigger").forEach(b => b.setAttribute("aria-expanded","false"));
+    }
+  });
+  document.addEventListener("keydown",event => {
+    if (event.key === "Escape") {
+      document.querySelectorAll(".branded-select-menu").forEach(m => m.hidden = true);
+      document.querySelectorAll(".branded-select-trigger").forEach(b => b.setAttribute("aria-expanded","false"));
+    }
+  });
+  scan(document);
+  new MutationObserver(records => records.forEach(record =>
+    record.addedNodes.forEach(node => { if (node.nodeType === 1) scan(node); })
+  )).observe(document.documentElement,{childList:true,subtree:true});
+})();
+
 </script>
 </body>
 </html>
